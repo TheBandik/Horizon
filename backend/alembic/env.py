@@ -13,7 +13,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # add your model's MetaData object here for 'autogenerate' support
-from src.models import metadata  # Убедитесь, что путь правильный
+from backend.src.models.models import metadata  # Убедитесь, что путь правильный
 target_metadata = metadata  # Убираем строку `target_metadata = None`
 
 # other values from the config, defined by the needs of env.py,
