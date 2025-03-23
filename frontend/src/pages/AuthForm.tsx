@@ -2,6 +2,8 @@ import { useState } from "react";
 import { TextInput, PasswordInput, Button, Container, Title, Text, Anchor, Paper, Group, Checkbox } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 
+import { registerUser, loginUser } from "../api/auth";
+
 interface AuthFormProps {
     mode: "login" | "register";
 }
@@ -11,16 +13,41 @@ export function AuthForm({ mode }: AuthFormProps) {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const handleSubmit = () => {
-        if (mode === "login") {
-            console.log("Logging in", { email, password });
-        } else {
-            console.log("Registering user", { username, name, email, password });
-            navigate("/login");
+    const handleSubmit = async () => {
+        console.log("handleSubmit called");
+        setLoading(true);
+        setError(null);
+    
+        try {
+            let response;
+            if (mode === "login") {
+                console.log("Logging in with:", email, password);
+                response = await loginUser(email, password);
+            } else {
+                console.log("Registering with:", username, name, email, password);
+                response = await registerUser(username, name, email, password);
+            }
+    
+            console.log("Response:", response);
+    
+            if (!response.success) {
+                throw new Error(response.message || "Something went wrong");
+            }
+    
+            console.log("Success:", response);
+            navigate(mode === "login" ? "/dashboard" : "/login");
+        } catch (err: any) {
+            console.error("Error:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
     };
+    
 
     return (
         <Container size={420} my={40}>
