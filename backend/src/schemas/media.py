@@ -8,7 +8,7 @@ class MediaBase(BaseModel):
     original_title: Optional[str] = None
     description: Optional[str] = None
     poster: Optional[str] = None
-    release_date: Optional[date] = None # type: ignore
+    release_date: Optional[date] = None
     media_type_id: int
 
 class Media(MediaBase):

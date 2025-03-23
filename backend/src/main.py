@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from src.routers import media
 from src.routers import media_types
 from src.routers import users
+from src.routers import series
 
 app = FastAPI()
 
@@ -19,3 +20,4 @@ app.add_middleware(
 app.include_router(media.router)
 app.include_router(media_types.router)
 app.include_router(users.router)
+app.include_router(series.router)
