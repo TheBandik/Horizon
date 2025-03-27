@@ -21,10 +21,10 @@ export function CreateMedia() {
         async function fetchData() {
             try {
                 const mediaTypesData = await getMediaTypes();
-                const genres = await getGenres();
+                // const genres = await getGenres();
 
                 setMediaTypeOptions(mediaTypesData);
-                setGenreOptions(genres)
+                // setGenreOptions(genres)
             } catch (error) {
                 console.error(error);
             }
@@ -67,7 +67,7 @@ export function CreateMedia() {
                 onChange={setSelectedMediaType}
                 data={mediaTypeOptions}
                 searchable
-
+                maxValues={1}
             />
             <MultiSelect
                 label="Genres"
@@ -76,7 +76,6 @@ export function CreateMedia() {
                 value={selectedGenres}
                 onChange={setSelectedGenres}
                 searchable
-                maxValues={1}
             />
             <Group justify="flex-end" >
                 <Button

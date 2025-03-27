@@ -8,12 +8,10 @@ export const getMediaTypes = async (): Promise<{ value: string; label: string }[
 
     const data = await response.json();
 
-    return [
-        { value: "", label: "Select media type" },
-        ...data.map((item: { id: number; name: string }) => ({
+    return data.map((item: { id: number; name: string }) => ({
             value: item.id.toString(),
             label: item.name,
-        }))];
+        }));
 };
 
 export const getGenres = async (): Promise<{ value: string; label: string }[]> => {
