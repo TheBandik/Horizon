@@ -7,6 +7,7 @@ from src.routers import series
 from src.routers import genres
 from src.routers import roles
 from src.routers import participants
+from src.routers import media_participant_role
 
 
 app = FastAPI()
@@ -28,3 +29,4 @@ app.include_router(series.router)
 app.include_router(genres.router)
 app.include_router(roles.router)
 app.include_router(participants.router)
+app.include_router(media_participant_role.router)
