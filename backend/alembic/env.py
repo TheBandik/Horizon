@@ -13,8 +13,21 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # add your model's MetaData object here for 'autogenerate' support
-from backend.src.models.models import metadata  # Убедитесь, что путь правильный
-target_metadata = metadata  # Убираем строку `target_metadata = None`
+from src.models.base import metadata
+target_metadata = metadata
+
+from src.models.genres import Genre
+from src.models.media_genre import MediaGenre
+from src.models.media_participant_role import MediaParticipantRole
+from src.models.media_series import MediaSeries
+from src.models.media_types import MediaType
+from src.models.media_user import MediaUser
+from src.models.media import Media
+from src.models.participants import Participant
+from src.models.roles import Role
+from src.models.series import Series
+from src.models.statuses import Status
+from src.models.users import User
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

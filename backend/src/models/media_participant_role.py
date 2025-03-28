@@ -2,18 +2,18 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, ForeignKey
 
 from src.models.base import Base
-from src.models.persons import Person
+from src.models.participants import Participant
 from src.models.roles import Role
 
 
-class MediaPersonRole(Base):
-    __tablename__ = 'media_person_role'
+class MediaParticipantRole(Base):
+    __tablename__ = 'media_participant_role'
 
     id = Column(Integer, primary_key=True, index=True)
     media_id = Column(Integer, ForeignKey('media.id'))
-    person_id = Column(Integer, ForeignKey('persons.id'))
+    participant_id = Column(Integer, ForeignKey('participants.id'))
     role_id = Column(Integer, ForeignKey('roles.id'))
 
-    media = relationship("Media", back_populates="persons")
-    person = relationship("Person")
+    media = relationship("Media", back_populates="participants")
+    company = relationship("Participant")
     role = relationship("Role")
