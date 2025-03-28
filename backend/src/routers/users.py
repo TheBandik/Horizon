@@ -7,7 +7,7 @@ from src.crud.users import create_user, auth_user
 
 router = APIRouter()
 
-@router.post('/register/')
+@router.post('/register/', tags=['Users'])
 def register_user(user: UserBase, db: Session = Depends(get_db)):
     result = create_user(db=db, user=user)
 
@@ -16,7 +16,7 @@ def register_user(user: UserBase, db: Session = Depends(get_db)):
 
     return result
 
-@router.post('/login/')
+@router.post('/login/', tags=['Users'])
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
     result = auth_user(db=db, user=user)
 
