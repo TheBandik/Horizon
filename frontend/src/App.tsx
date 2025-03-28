@@ -7,6 +7,7 @@ import '@mantine/dates/styles.css';
 import { Home } from "./pages/Home"
 import { AuthForm } from "./pages/AuthForm";
 import { CreateMedia } from "./pages/CreateMedia";
+import { User } from './pages/User';
 
 export default function App() {
 
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/register" element={<AuthForm mode="register" />} />
           <Route path="/login" element={<AuthForm mode="login" />} />
           <Route path="/media" element={<CreateMedia/>} />
+          <Route path="/user" element={<User/>} />
         </Routes>
       </Router>
     </MantineProvider>
