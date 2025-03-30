@@ -7,10 +7,8 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconUpload } from '@tabler/icons-react';
 
 import { getMediaTypes, getGenres, getRoles, getParticipants, createMedia } from '../api/media';
+import { commonInputProps } from './styles/props'
 
-const commonInputProps = {
-    radius: "md",
-};
 
 export function CreateMedia() {
     const [opened, { open, close }] = useDisclosure(false);
