@@ -9,6 +9,7 @@ from src.routers import roles
 from src.routers import participants
 from src.routers import media_participant_role
 from src.routers import statuses
+from src.routers import media_user
 
 
 app = FastAPI()
@@ -32,3 +33,4 @@ app.include_router(roles.router)
 app.include_router(participants.router)
 app.include_router(media_participant_role.router)
 app.include_router(statuses.router)
+app.include_router(media_user.router)
