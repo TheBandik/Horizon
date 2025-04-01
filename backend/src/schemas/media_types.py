@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class MediaTypeBase(BaseModel):
     name: str
 
+
 class MediaType(MediaTypeBase):
     id: int
 

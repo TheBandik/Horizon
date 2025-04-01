@@ -6,6 +6,7 @@ class MediaParticipantRoleBase(BaseModel):
     participant_id: int
     role_id: int
 
+
 class MediaParticipantRole(MediaParticipantRoleBase):
     id: int
 

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from src.models.media_participant_role import MediaParticipantRole
-from src.schemas.media_participant_role import MediaParticipantRoleBase
+from backend.src.models.media_participant_role import MediaParticipantRole
+from backend.src.schemas.media_participant_role import MediaParticipantRoleBase
 
 
 def create_media_participant_role(db: Session, media_participant_role: MediaParticipantRoleBase):

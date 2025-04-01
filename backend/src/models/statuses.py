@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from src.models.base import Base
-from src.models.media_types import MediaType
+from backend.src.models.base import Base
+from backend.src.models.media_types import MediaType
 
 
 class Status(Base):

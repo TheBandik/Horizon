@@ -1,11 +1,11 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey
 
-from src.models.base import Base
-from src.models.media_types import MediaType
-from src.models.media_genre import MediaGenre
-from src.models.media_participant_role import MediaParticipantRole
-from src.models.media_user import MediaUser
+from backend.src.models.base import Base
+from backend.src.models.media_types import MediaType
+from backend.src.models.media_genre import MediaGenre
+from backend.src.models.media_participant_role import MediaParticipantRole
+from backend.src.models.media_user import MediaUser
 
 
 class Media(Base):

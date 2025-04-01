@@ -1,9 +1,9 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, ForeignKey, Date, SmallInteger
 
-from src.models.base import Base
-from src.models.statuses import Status
-from src.models.users import User
+from backend.src.models.base import Base
+from backend.src.models.statuses import Status
+from backend.src.models.users import User
 
 
 class MediaUser(Base):

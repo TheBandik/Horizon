@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, ForeignKey
 
-from src.models.base import Base
+from backend.src.models.base import Base
 
 
 class MediaSeries(Base):

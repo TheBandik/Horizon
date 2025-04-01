@@ -1,16 +1,15 @@
 from fastapi import FastAPI
 
-from src.routers import media
-from src.routers import media_types
-from src.routers import users
-from src.routers import series
-from src.routers import genres
-from src.routers import roles
-from src.routers import participants
-from src.routers import media_participant_role
-from src.routers import statuses
-from src.routers import media_user
-
+from backend.src.routers import media
+from backend.src.routers import media_types
+from backend.src.routers import users
+from backend.src.routers import series
+from backend.src.routers import genres
+from backend.src.routers import roles
+from backend.src.routers import participants
+from backend.src.routers import media_participant_role
+from backend.src.routers import statuses
+from backend.src.routers import media_user
 
 app = FastAPI()
 

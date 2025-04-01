@@ -1,8 +1,8 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, ForeignKey
 
-from src.models.base import Base
-from src.models.genres import Genre
+from backend.src.models.base import Base
+from backend.src.models.genres import Genre
 
 
 class MediaGenre(Base):

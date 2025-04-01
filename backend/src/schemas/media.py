@@ -12,7 +12,8 @@ class MediaBase(BaseModel):
     media_type: str
     genres: Optional[List[str]] = Field(default_factory=list)
     participants: Optional[List[Dict[str, str]]]
-    poster: Optional[str] 
+    poster: Optional[str]
+
 
 class Media(MediaBase):
     id: int

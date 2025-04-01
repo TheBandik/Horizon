@@ -13,21 +13,23 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # add your model's MetaData object here for 'autogenerate' support
-from src.models.base import metadata
+from backend.src.models.base import metadata
+
 target_metadata = metadata
 
-from src.models.genres import Genre
-from src.models.media_genre import MediaGenre
-from src.models.media_participant_role import MediaParticipantRole
-from src.models.media_series import MediaSeries
-from src.models.media_types import MediaType
-from src.models.media_user import MediaUser
-from src.models.media import Media
-from src.models.participants import Participant
-from src.models.roles import Role
-from src.models.series import Series
-from src.models.statuses import Status
-from src.models.users import User
+from backend.src.models.genres import Genre
+from backend.src.models.media_genre import MediaGenre
+from backend.src.models.media_participant_role import MediaParticipantRole
+from backend.src.models.media_series import MediaSeries
+from backend.src.models.media_types import MediaType
+from backend.src.models.media_user import MediaUser
+from backend.src.models.media import Media
+from backend.src.models.participants import Participant
+from backend.src.models.roles import Role
+from backend.src.models.series import Series
+from backend.src.models.statuses import Status
+from backend.src.models.users import User
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -47,6 +49,7 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     connectable = engine_from_config(
@@ -62,6 +65,7 @@ def run_migrations_online() -> None:
 
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

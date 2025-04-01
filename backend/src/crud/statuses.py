@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 
-from src.schemas.statuses import StatusBase
-from src.models.statuses import Status
+from backend.src.schemas.statuses import StatusBase
+from backend.src.models.statuses import Status
+
 
 def create_status(db: Session, status: StatusBase):
     db_status = Status(
@@ -15,8 +16,10 @@ def create_status(db: Session, status: StatusBase):
 
     return db_status
 
+
 def get_statuses(db: Session):
     return db.query(Status).all()
+
 
 def get_status(db: Session, status_id: int):
     db_status = db.query(Status).filter(Status.id == status_id).first()
