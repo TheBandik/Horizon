@@ -1,53 +1,40 @@
-import { useState } from "react";
-import { TextInput, PasswordInput, Button, Container, Title, Text, Anchor, Paper, Group, Checkbox } from "@mantine/core";
-import { useNavigate } from "react-router-dom";
+import {useState} from "react";
+import {TextInput, PasswordInput, Button, Container, Title, Text, Anchor, Paper, Group, Checkbox} from "@mantine/core";
+import {useNavigate} from "react-router-dom";
 
-import { registerUser, loginUser } from "../api/auth";
+import {registerUser, loginUser} from "../api/auth";
 
 interface AuthFormProps {
     mode: "login" | "register";
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({mode}: AuthFormProps) {
     const [username, setUsername] = useState("");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const handleSubmit = async () => {
-        console.log("handleSubmit called");
-        setLoading(true);
-        setError(null);
-    
         try {
             let response;
+
             if (mode === "login") {
-                console.log("Logging in with:", email, password);
                 response = await loginUser(email, password);
+                if (response.token) {
+                    localStorage.setItem("authToken", response.token);
+                    navigate("/user")
+                } else {
+                    alert("Wrong user")
+                }
             } else {
-                console.log("Registering with:", username, name, email, password);
-                response = await registerUser(username, name, email, password);
+                await registerUser(username, name, email, password);
             }
-    
-            console.log("Response:", response);
-    
-            if (!response.success) {
-                throw new Error(response.message || "Something went wrong");
-            }
-    
-            console.log("Success:", response);
-            navigate(mode === "login" ? "/dashboard" : "/login");
-        } catch (err: any) {
-            console.error("Error:", err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
+        } catch (error) {
+            console.error("Auth error", error);
         }
     };
-    
+
 
     return (
         <Container size={420} my={40}>
@@ -101,7 +88,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 />
                 {mode === "login" && (
                     <Group justify="space-between" mt="lg">
-                        <Checkbox label="Remember me" />
+                        <Checkbox label="Remember me"/>
                         <Anchor component="button" size="sm">
                             Forgot password?
                         </Anchor>
