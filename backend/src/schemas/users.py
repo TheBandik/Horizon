@@ -1,6 +1,11 @@
 from pydantic import BaseModel, EmailStr
 
 
+class Token(BaseModel):
+    token: str
+    token_type: str
+
+
 class UserBase(BaseModel):
     name: str
     login: str
