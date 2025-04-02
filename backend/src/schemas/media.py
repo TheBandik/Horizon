@@ -15,6 +15,13 @@ class MediaBase(BaseModel):
     poster: Optional[str]
 
 
+class MediaSearch(BaseModel):
+    id: int
+    title: str
+    media_type_id: int
+    poster: Optional[str]
+
+
 class Media(MediaBase):
     id: int
 
