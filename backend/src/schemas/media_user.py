@@ -12,6 +12,19 @@ class MediaUserBase(BaseModel):
     rating: Optional[int]
 
 
+class MediaUserDelete(BaseModel):
+    user_id: int
+    media_id: int
+
+
+class MediaUserUpdate(BaseModel):
+    user_id: int
+    media_id: int
+    status_id: Optional[int]
+    rating: Optional[int]
+    date: Optional[date]
+
+
 class MediaUser(MediaUserBase):
     id: int
 
