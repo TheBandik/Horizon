@@ -7,12 +7,14 @@ from pydantic import BaseModel, Field
 class MediaBase(BaseModel):
     title: str
     original_title: Optional[str]
-    release_date: Optional[date]
     description: Optional[str]
-    media_type: str
-    genres: Optional[List[str]] = Field(default_factory=list)
-    participants: Optional[List[Dict[str, str]]]
     poster: Optional[str]
+    release_date: Optional[date]
+
+    media_type_id: int
+    genre_ids: Optional[List[int]]
+    participant_ids: Optional[List[Dict[int, int]]]
+    series_ids: Optional[List[int]]
 
 
 class MediaSearch(BaseModel):

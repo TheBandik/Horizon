@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from backend.src.exceptions import NotFoundError
 from backend.src.models.media import Media
+from backend.src.models.media_series import MediaSeries
 from backend.src.models.media_types import MediaType
 from backend.src.models.media_genre import MediaGenre
 from backend.src.models.genres import Genre
@@ -19,29 +20,32 @@ def create_media(db: Session, media: MediaBase):
         description=media.description,
         poster=media.poster,
         release_date=media.release_date,
-        media_type_id=media.media_type
+        media_type_id=media.media_type_id
     )
 
     db.add(db_media)
     db.commit()
     db.refresh(db_media)
 
-    if media.genres:
-        for genre in media.genres:
-            db_media_genre = MediaGenre(media_id=db_media.id, genre_id=genre)
+    if media.genre_ids:
+        for genre_id in media.genre_ids:
+            db_media_genre = MediaGenre(media_id=db_media.id, genre_id=genre_id)
             db.add(db_media_genre)
 
-    if media.participants:
+    if media.participant_ids:
         for participant in media.participants:
-            participant_id = db.query(Participant).filter(Participant.name == participant['participant']).first().id
-            role_id = db.query(Role).filter(Role.name == participant['role']).first().id
-            db_media_participant_role = MediaParticipantRole(media_id=db_media.id, participant_id=participant_id,
-                                                             role_id=role_id)
+            db_media_participant_role = MediaParticipantRole(media_id=db_media.id, participant_id=participant[0],
+                                                             role_id=participant[1])
             db.add(db_media_participant_role)
+
+    if media.series_ids:
+        for series_id in media.series_ids:
+            db_media_series = MediaSeries(media_id=db_media.id, series_id=series_id)
+            db.add(db_media_series)
 
     db.commit()
 
-    return True
+    return {"message": "Media was created"}
 
 
 def get_all_media(db: Session):
