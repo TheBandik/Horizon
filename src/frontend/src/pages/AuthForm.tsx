@@ -11,6 +11,8 @@ import {
 import {useForm} from '@mantine/form';
 import {ThemeToggle} from "../components/ThemeToggle.tsx";
 import packageJson from '../../package.json';
+import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
+import { useTranslation } from 'react-i18next';
 
 export function AuthForm() {
     const form = useForm({
@@ -26,6 +28,8 @@ export function AuthForm() {
             password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
+
+    const { t } = useTranslation();
 
     return (
         <Stack
@@ -45,7 +49,7 @@ export function AuthForm() {
                 withBorder p="xl"
             >
                 <Text size="lg" fw={500} ta="center">
-                    Welcome to Horizon
+                    {t("welcome")}
                 </Text>
 
                 <Space
@@ -61,27 +65,25 @@ export function AuthForm() {
                             placeholder="user@horizon.com"
                             value={form.values.email}
                             onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
-                            error={form.errors.email && 'Invalid email'}
                             radius="md"
                         />
 
                         <PasswordInput
                             required
-                            label="Password"
-                            placeholder="Your password"
+                            label={t("password")}
+                            placeholder={t("password_placeholder")}
                             value={form.values.password}
                             onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
-                            error={form.errors.password && 'Password should include at least 6 characters'}
                             radius="md"
                         />
                     </Stack>
 
                     <Group justify="space-between" mt="xl">
                         <Anchor component="button" type="button" c="dimmed" size="xs">
-                            {"Don't have an account? Register"}
+                            {t("no_account")}
                         </Anchor>
                         <Button type="submit">
-                            {"Login"}
+                            {t("login_button")}
                         </Button>
                     </Group>
                 </form>
@@ -105,7 +107,12 @@ export function AuthForm() {
                 </Text>
 
                 <div style={{position: 'absolute', right: 20}}>
-                    <ThemeToggle/>
+                    <Group
+                        gap="xs"
+                    >
+                        <LanguageSwitcher/>
+                        <ThemeToggle/>
+                    </Group>
                 </div>
             </Flex>
         </Stack>
