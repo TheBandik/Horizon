@@ -1,0 +1,21 @@
+.icon {
+    width: 22px;
+    height: 22px;
+}
+
+.light {
+    display: block;
+}
+
+.dark {
+    display: none;
+}
+
+/* Когда активна тёмная тема */
+[data-mantine-color-scheme='dark'] .light {
+    display: none;
+}
+
+[data-mantine-color-scheme='dark'] .dark {
+    display: block;
+}

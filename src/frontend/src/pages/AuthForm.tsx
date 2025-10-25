@@ -1,6 +1,6 @@
 import {
     Anchor,
-    Button,
+    Button, Flex,
     Group,
     Paper,
     PasswordInput, Space,
@@ -9,6 +9,8 @@ import {
     TextInput,
 } from '@mantine/core';
 import {useForm} from '@mantine/form';
+import {ThemeToggle} from "../components/ThemeToggle.tsx";
+import packageJson from '../../package.json';
 
 export function AuthForm() {
     const form = useForm({
@@ -89,11 +91,23 @@ export function AuthForm() {
                 h="xl"
             ></Space>
 
-            <Text
-                size="xs"
+
+            <Flex
+                align="center"
+                justify="center"
+                w="100%"
+                pos="relative"
             >
-                © 2025 Horizon v0.1.0 by Arkadiy Schneider
-            </Text>
+                <Text
+                    size="xs"
+                >
+                    © 2025 Horizon v{packageJson.version} by Arkadiy Schneider
+                </Text>
+
+                <div style={{position: 'absolute', right: 20}}>
+                    <ThemeToggle/>
+                </div>
+            </Flex>
         </Stack>
     );
 }
