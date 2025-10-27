@@ -12,7 +12,8 @@ import {useForm} from '@mantine/form';
 import {ThemeToggle} from "../components/ThemeToggle.tsx";
 import packageJson from '../../package.json';
 import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
+import {useMediaQuery} from '@mantine/hooks';
 
 export function AuthForm() {
     const form = useForm({
@@ -29,11 +30,13 @@ export function AuthForm() {
         },
     });
 
-    const { t } = useTranslation();
+    const {t} = useTranslation();
+    const isMobile = useMediaQuery('(max-width: 600px)');
 
     return (
         <Stack
             justify="space-around"
+            p={"sm"}
             align="center"
             h="100vh"
         >
@@ -47,6 +50,8 @@ export function AuthForm() {
 
             <Paper
                 withBorder p="xl"
+                w={isMobile ? 350 : 400}
+                h={"auto"}
             >
                 <Text size="lg" fw={500} ta="center">
                     {t("welcome")}
@@ -78,14 +83,14 @@ export function AuthForm() {
                         />
                     </Stack>
 
-                    <Group justify="space-between" mt="xl">
+                    <Stack justify="space-between" mt="xl" align={"center"}>
                         <Anchor component="button" type="button" c="dimmed" size="xs">
                             {t("no_account")}
                         </Anchor>
-                        <Button type="submit">
+                        <Button type="submit" w={"fit-content"}>
                             {t("login_button")}
                         </Button>
-                    </Group>
+                    </Stack>
                 </form>
             </Paper>
 
@@ -99,21 +104,28 @@ export function AuthForm() {
                 justify="center"
                 w="100%"
                 pos="relative"
+                direction={isMobile ? 'column' : 'row'}
+                gap={isMobile ? 'xs' : 0}
             >
-                <Text
-                    size="xs"
-                >
-                    © 2025 Horizon v{packageJson.version} by Arkadiy Schneider
-                </Text>
-
-                <div style={{position: 'absolute', right: 20}}>
-                    <Group
-                        gap="xs"
-                    >
+                {isMobile && (
+                    <Group gap="xs" mb="xs">
                         <LanguageSwitcher/>
                         <ThemeToggle/>
                     </Group>
-                </div>
+                )}
+
+                <Text size="xs" ta="center">
+                    © 2025 Horizon v{packageJson.version} by Arkadiy Schneider
+                </Text>
+
+                {!isMobile && (
+                    <div style={{position: 'absolute', right: 20}}>
+                        <Group gap="xs">
+                            <LanguageSwitcher/>
+                            <ThemeToggle/>
+                        </Group>
+                    </div>
+                )}
             </Flex>
         </Stack>
     );
