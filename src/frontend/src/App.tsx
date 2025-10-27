@@ -1,8 +1,10 @@
 import {createTheme, MantineProvider} from '@mantine/core';
+import {BrowserRouter, Routes, Route} from 'react-router-dom';
 
 import '@mantine/core/styles.css';
 
-import {AuthForm} from "./pages/AuthForm.tsx";
+import {AuthForm} from "./pages/auth/AuthForm.tsx";
+import {LoginForm} from "./pages/auth/LoginForm.tsx";
 
 export default function App() {
 
@@ -46,6 +48,17 @@ export default function App() {
     });
 
     return <MantineProvider theme={theme}>{
-        <AuthForm></AuthForm>
+        <BrowserRouter>
+            <Routes>
+                <Route
+                    path="/login"
+                    element={
+                        <AuthForm>
+                            <LoginForm/>
+                        </AuthForm>
+                    }
+                />
+            </Routes>
+        </BrowserRouter>
     }</MantineProvider>;
 }
