@@ -3,5 +3,8 @@
   "login_button": "ログイン",
   "password": "パスワード",
   "password_placeholder": "パスワードを入力",
-  "no_account": "アカウントをお持ちではありませんか？ 登録"
+  "no_account": "アカウントをお持ちではありませんか？ 登録",
+  "repeated_password": "パスワードの確認",
+  "repeated_password_placeholder": "パスワードを繰り返してください",
+  "signup_button": "サインアップ"
 }

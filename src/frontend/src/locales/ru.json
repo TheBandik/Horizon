@@ -3,5 +3,8 @@
   "login_button": "Войти",
   "password": "Пароль",
   "password_placeholder": "Ваш пароль",
-  "no_account": "Нет аккаунта? Зарегистрируйтесь"
+  "no_account": "Нет аккаунта? Зарегистрируйтесь",
+  "repeated_password": "Повторите пароль",
+  "repeated_password_placeholder": "Повторите ваш пароль",
+  "signup_button": "Зарегистрироваться"
 }

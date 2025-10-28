@@ -5,6 +5,7 @@ import '@mantine/core/styles.css';
 
 import {AuthForm} from "./pages/auth/AuthForm.tsx";
 import {LoginForm} from "./pages/auth/LoginForm.tsx";
+import {RegisterForm} from "./pages/auth/RegisterForm.tsx";
 
 export default function App() {
 
@@ -50,11 +51,21 @@ export default function App() {
     return <MantineProvider theme={theme}>{
         <BrowserRouter>
             <Routes>
+                {/* Страница авторизации */}
                 <Route
                     path="/login"
                     element={
                         <AuthForm>
                             <LoginForm/>
+                        </AuthForm>
+                    }
+                />
+                {/*Страница регистрации*/}
+                <Route
+                    path="/register"
+                    element={
+                        <AuthForm>
+                            <RegisterForm/>
                         </AuthForm>
                     }
                 />

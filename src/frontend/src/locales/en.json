@@ -3,5 +3,8 @@
   "login_button": "Login",
   "password": "Password",
   "password_placeholder": "Your password",
-  "no_account": "Don't have an account? Register"
+  "no_account": "Don't have an account? Register",
+  "repeated_password": "Repeat password",
+  "repeated_password_placeholder": "Repeat your password",
+  "signup_button": "Sign up"
 }
