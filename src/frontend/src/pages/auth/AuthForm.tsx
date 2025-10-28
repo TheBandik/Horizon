@@ -12,17 +12,18 @@ import {LanguageSwitcher} from "../../components/LanguageSwitcher.tsx";
 import {useTranslation} from 'react-i18next';
 import {useMediaQuery} from '@mantine/hooks';
 
-export function AuthForm({ children }: { children: React.ReactNode; title?: string }) {
+export function AuthForm({children}: { children: React.ReactNode; title?: string }) {
 
     const {t} = useTranslation();
     const isMobile = useMediaQuery('(max-width: 600px)');
 
     return (
         <Stack
-            justify="space-around"
-            p={"sm"}
+            justify="space-between"
             align="center"
             h="100vh"
+            pt={isMobile ? "20%" : "2%"}
+            pb={"2%"}
         >
             <Text
                 size="100px"
