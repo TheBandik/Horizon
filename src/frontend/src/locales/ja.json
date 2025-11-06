@@ -6,5 +6,11 @@
   "no_account": "アカウントをお持ちではありませんか？ 登録",
   "repeated_password": "パスワードの確認",
   "repeated_password_placeholder": "パスワードを繰り返してください",
-  "signup_button": "サインアップ"
+  "signup_button": "サインアップ",
+  "games": "ゲーム",
+  "movies": "映画",
+  "series": "テレビドラマ",
+  "books": "小説",
+  "comics": "漫画",
+  "logout": "ログアウト"
 }

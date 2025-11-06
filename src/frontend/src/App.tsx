@@ -6,6 +6,7 @@ import '@mantine/core/styles.css';
 import {AuthForm} from "./pages/auth/AuthForm.tsx";
 import {LoginForm} from "./pages/auth/LoginForm.tsx";
 import {RegisterForm} from "./pages/auth/RegisterForm.tsx";
+import {UserProfile} from "./pages/UserProfile.tsx";
 
 export default function App() {
 
@@ -67,6 +68,13 @@ export default function App() {
                         <AuthForm>
                             <RegisterForm/>
                         </AuthForm>
+                    }
+                />
+            {/* Страница пользователя */}
+                <Route
+                    path="/user"
+                    element={
+                        <UserProfile/>
                     }
                 />
             </Routes>

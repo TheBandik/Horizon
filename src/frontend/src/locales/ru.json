@@ -6,5 +6,11 @@
   "no_account": "Нет аккаунта? Зарегистрируйтесь",
   "repeated_password": "Повторите пароль",
   "repeated_password_placeholder": "Повторите ваш пароль",
-  "signup_button": "Зарегистрироваться"
+  "signup_button": "Зарегистрироваться",
+  "games": "Игры",
+  "movies": "Фильмы",
+  "series": "Сериалы",
+  "books": "Книги",
+  "comics": "Комиксы",
+  "logout": "Выйти"
 }

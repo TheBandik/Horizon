@@ -6,5 +6,11 @@
   "no_account": "Don't have an account? Register",
   "repeated_password": "Repeat password",
   "repeated_password_placeholder": "Repeat your password",
-  "signup_button": "Sign up"
+  "signup_button": "Sign up",
+  "games": "Games",
+  "movies": "Movies",
+  "series": "Series",
+  "books": "Books",
+  "comics": "Comics",
+  "logout": "Logout"
 }
