@@ -22,6 +22,7 @@ export default function App() {
                 '#FF5252',
                 '#FF2A2A',
                 '#E51F24',
+                // var(--mantine-color-brand-7)
                 '#C91A25',
                 '#A1141D',
                 '#7A0F16',
@@ -31,6 +32,7 @@ export default function App() {
                 '#FFE9B5',
                 '#FFD27A',
                 '#FFBA3F',
+                // var(--mantine-color-accent-4)
                 '#FFA903',
                 '#E69B00',
                 '#CC8B00',
