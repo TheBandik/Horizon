@@ -2,11 +2,14 @@ import {createTheme, MantineProvider} from '@mantine/core';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 
 import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
+import '@mantine/dropzone/styles.css';
 
 import {AuthForm} from "./pages/auth/AuthForm.tsx";
 import {LoginForm} from "./pages/auth/LoginForm.tsx";
 import {RegisterForm} from "./pages/auth/RegisterForm.tsx";
 import {UserProfile} from "./pages/UserProfile.tsx";
+import {CreateMedia} from "./pages/CreateMedia.tsx";
 
 export default function App() {
 
@@ -72,11 +75,18 @@ export default function App() {
                         </AuthForm>
                     }
                 />
-            {/* Страница пользователя */}
+                {/* Страница пользователя */}
                 <Route
                     path="/user"
                     element={
                         <UserProfile/>
+                    }
+                />
+                {/* Страница добавления нового медиа */}
+                <Route
+                    path="/create"
+                    element={
+                        <CreateMedia/>
                     }
                 />
             </Routes>
