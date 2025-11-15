@@ -1,5 +1,6 @@
 package thebandik.horizon.backend.auth;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import thebandik.horizon.backend.user.User;
 import thebandik.horizon.backend.user.UserRepository;
@@ -8,9 +9,11 @@ import thebandik.horizon.backend.user.UserRepository;
 public class AuthService {
 
     private final UserRepository users;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository users) {
+    public AuthService(UserRepository users, PasswordEncoder passwordEncoder) {
         this.users = users;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User register(RegisterRequest request) {
@@ -28,7 +31,7 @@ public class AuthService {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setPasswordHash(request.password());
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
 
         return users.save(user);
     }
