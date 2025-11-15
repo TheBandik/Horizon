@@ -2,6 +2,10 @@ package thebandik.horizon.backend.auth;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import thebandik.horizon.backend.auth.error.EmailAlreadyExistsException;
+import thebandik.horizon.backend.auth.error.EmailNotFoundException;
+import thebandik.horizon.backend.auth.error.UnauthorizedException;
+import thebandik.horizon.backend.auth.error.UsernameAlreadyExistsException;
 import thebandik.horizon.backend.user.User;
 import thebandik.horizon.backend.user.UserRepository;
 
@@ -34,5 +38,16 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.password()));
 
         return users.save(user);
+    }
+
+    public User login(LoginRequest request) {
+
+        User user = users.findByEmail(request.email()).orElseThrow(() -> new EmailNotFoundException(request.email()));
+
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new UnauthorizedException(request.email());
+        }
+
+        return user;
     }
 }
