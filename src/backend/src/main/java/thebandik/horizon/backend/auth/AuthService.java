@@ -14,13 +14,20 @@ public class AuthService {
     }
 
     public User register(RegisterRequest request) {
-        if (users.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email already exists");
+        String email = request.email();
+        String username = request.username();
+
+        if (users.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email);
+        }
+
+        if (users.existsByUsername(username)) {
+            throw new UsernameAlreadyExistsException(username);
         }
 
         User user = new User();
-        user.setUsername(request.username());
-        user.setEmail(request.email());
+        user.setUsername(username);
+        user.setEmail(email);
         user.setPasswordHash(request.password());
 
         return users.save(user);
