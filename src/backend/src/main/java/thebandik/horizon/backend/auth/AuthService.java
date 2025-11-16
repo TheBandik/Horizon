@@ -2,10 +2,9 @@ package thebandik.horizon.backend.auth;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import thebandik.horizon.backend.auth.error.EmailAlreadyExistsException;
-import thebandik.horizon.backend.auth.error.EmailNotFoundException;
-import thebandik.horizon.backend.auth.error.UnauthorizedException;
-import thebandik.horizon.backend.auth.error.UsernameAlreadyExistsException;
+import thebandik.horizon.backend.common.errors.AlreadyExistsException;
+import thebandik.horizon.backend.common.errors.UnauthorizedException;
+import thebandik.horizon.backend.common.errors.NotFoundException;
 import thebandik.horizon.backend.user.User;
 import thebandik.horizon.backend.user.UserRepository;
 
@@ -25,11 +24,11 @@ public class AuthService {
         String username = request.username();
 
         if (users.existsByEmail(email)) {
-            throw new EmailAlreadyExistsException(email);
+            throw new AlreadyExistsException("EMAIL", "Email", email);
         }
 
         if (users.existsByUsername(username)) {
-            throw new UsernameAlreadyExistsException(username);
+            throw new AlreadyExistsException("USERNAME", "Username", username);
         }
 
         User user = new User();
@@ -42,7 +41,7 @@ public class AuthService {
 
     public User login(LoginRequest request) {
 
-        User user = users.findByEmail(request.email()).orElseThrow(() -> new EmailNotFoundException(request.email()));
+        User user = users.findByEmail(request.email()).orElseThrow(() -> new NotFoundException("EMAIL", "Email", request.email()));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new UnauthorizedException(request.email());

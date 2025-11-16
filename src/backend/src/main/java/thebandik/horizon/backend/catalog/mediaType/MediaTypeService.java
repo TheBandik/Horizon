@@ -1,8 +1,8 @@
 package thebandik.horizon.backend.catalog.mediaType;
 
 import org.springframework.stereotype.Service;
-import thebandik.horizon.backend.catalog.mediaType.error.MediaTypeAlreadyExistsException;
-import thebandik.horizon.backend.catalog.mediaType.error.MediaTypeNotFoundException;
+import thebandik.horizon.backend.common.errors.AlreadyExistsException;
+import thebandik.horizon.backend.common.errors.NotFoundException;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ public class MediaTypeService {
         String name = request.name();
 
         if (mediaTypes.existsByName(name)) {
-            throw new MediaTypeAlreadyExistsException(name);
+            throw new AlreadyExistsException("MEDIA_TYPE", "Media type", name);
         }
 
         MediaTypeEntity mediaType = new MediaTypeEntity();
@@ -33,12 +33,12 @@ public class MediaTypeService {
     }
 
     public MediaTypeEntity getById(Long id) {
-        return mediaTypes.findById(id).orElseThrow(() -> new MediaTypeNotFoundException(id));
+        return mediaTypes.findById(id).orElseThrow(() -> new NotFoundException("MEDIA_TYPE", "Media type", id.toString()));
     }
 
     public MediaTypeEntity update(Long id, MediaTypeRequest request) {
         MediaTypeEntity mediaType = mediaTypes.findById(id)
-                .orElseThrow(() -> new MediaTypeNotFoundException(id));
+                .orElseThrow(() -> new NotFoundException("MEDIA_TYPE", "Media type", id.toString()));
 
         mediaType.setName(request.name());
 
@@ -47,7 +47,7 @@ public class MediaTypeService {
 
     public void delete(Long id) {
         if (!mediaTypes.existsById(id)) {
-            throw new MediaTypeNotFoundException(id);
+            throw new NotFoundException("MEDIA_TYPE", "Media type", id.toString());
         }
 
         mediaTypes.deleteById(id);

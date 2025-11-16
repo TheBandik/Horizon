@@ -1,4 +1,4 @@
-package thebandik.horizon.backend.auth.error;
+package thebandik.horizon.backend.common.errors;
 
 import org.springframework.http.HttpStatus;
 import thebandik.horizon.backend.common.ApiException;
