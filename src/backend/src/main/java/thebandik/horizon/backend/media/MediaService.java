@@ -1,9 +1,11 @@
 package thebandik.horizon.backend.media;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeService;
 import thebandik.horizon.backend.common.errors.NotFoundException;
+import thebandik.horizon.backend.common.s3.S3StorageService;
 import thebandik.horizon.backend.media.dto.MediaRequest;
 
 import java.util.List;
@@ -13,21 +15,27 @@ public class MediaService {
 
     private final MediaRepository mediaRepository;
     private final MediaTypeService mediaTypeService;
+    private final S3StorageService s3;
 
-    private MediaService(MediaRepository mediaRepository, MediaTypeService mediaTypeService) {
+    private MediaService(MediaRepository mediaRepository, MediaTypeService mediaTypeService, S3StorageService s3) {
         this.mediaRepository = mediaRepository;
         this.mediaTypeService = mediaTypeService;
+        this.s3 = s3;
     }
 
-    public Media create(MediaRequest request) {
-
+    public Media create(MediaRequest request, MultipartFile poster) {
         MediaTypeEntity mediaType = mediaTypeService.getById(request.mediaTypeId());
 
         Media media = new Media();
 
         media.setTitle(request.title());
         media.setOriginalTitle(request.originalTitle());
-        media.setPoster("https://cloud/**");
+
+        if (poster != null && !poster.isEmpty()) {
+            String key = s3.upload(poster);
+            media.setPoster(s3.getPublicUrl(key));
+        }
+
         media.setReleaseDate(request.releaseDate());
         media.setMediaType(mediaType);
 

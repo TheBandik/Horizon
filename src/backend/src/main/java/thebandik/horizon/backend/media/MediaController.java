@@ -1,8 +1,10 @@
 package thebandik.horizon.backend.media;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import thebandik.horizon.backend.catalog.mediaType.dto.MediaTypeResponse;
 import thebandik.horizon.backend.media.dto.MediaRequest;
 import thebandik.horizon.backend.media.dto.MediaResponse;
@@ -19,9 +21,12 @@ public class MediaController {
         this.mediaService = mediaService;
     }
 
-    @PostMapping
-    public ResponseEntity<MediaResponse> create(@RequestBody MediaRequest request) {
-        Media media = mediaService.create(request);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaResponse> create(
+            @RequestPart("data") MediaRequest request,
+            @RequestPart(value = "poster", required = false) MultipartFile poster
+    ) {
+        Media media = mediaService.create(request, poster);
 
         MediaResponse response = new MediaResponse(
                 media.getId(),
