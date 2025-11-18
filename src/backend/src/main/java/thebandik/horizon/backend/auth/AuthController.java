@@ -6,6 +6,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import thebandik.horizon.backend.auth.dto.LoginRequest;
+import thebandik.horizon.backend.auth.dto.LoginResponse;
+import thebandik.horizon.backend.auth.dto.RegisterRequest;
+import thebandik.horizon.backend.auth.dto.RegisterResponse;
 import thebandik.horizon.backend.user.User;
 
 @RestController

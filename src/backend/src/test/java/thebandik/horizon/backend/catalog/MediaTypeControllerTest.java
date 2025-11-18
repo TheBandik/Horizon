@@ -10,7 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeRepository;
-import thebandik.horizon.backend.catalog.mediaType.MediaTypeRequest;
+import thebandik.horizon.backend.catalog.mediaType.dto.MediaTypeRequest;
+import thebandik.horizon.backend.media.MediaRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,8 +29,12 @@ class MediaTypeControllerTest {
     @Autowired
     private MediaTypeRepository mediaTypeRepository;
 
+    @Autowired
+    private MediaRepository mediaRepository;
+
     @BeforeEach
     void setUp() {
+        mediaRepository.deleteAll();
         mediaTypeRepository.deleteAll();
     }
 

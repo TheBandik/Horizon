@@ -8,6 +8,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.auth.dto.LoginRequest;
+import thebandik.horizon.backend.auth.dto.RegisterRequest;
 import thebandik.horizon.backend.user.UserRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

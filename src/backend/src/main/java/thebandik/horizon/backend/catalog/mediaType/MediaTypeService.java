@@ -1,6 +1,7 @@
 package thebandik.horizon.backend.catalog.mediaType;
 
 import org.springframework.stereotype.Service;
+import thebandik.horizon.backend.catalog.mediaType.dto.MediaTypeRequest;
 import thebandik.horizon.backend.common.errors.AlreadyExistsException;
 import thebandik.horizon.backend.common.errors.NotFoundException;
 

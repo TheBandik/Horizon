@@ -1,4 +1,4 @@
-package thebandik.horizon.backend.auth;
+package thebandik.horizon.backend.auth.dto;
 
 public record RegisterResponse(
         Long id,

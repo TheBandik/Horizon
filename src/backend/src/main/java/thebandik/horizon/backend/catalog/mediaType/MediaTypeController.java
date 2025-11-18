@@ -3,6 +3,8 @@ package thebandik.horizon.backend.catalog.mediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import thebandik.horizon.backend.catalog.mediaType.dto.MediaTypeRequest;
+import thebandik.horizon.backend.catalog.mediaType.dto.MediaTypeResponse;
 
 import java.util.List;
 

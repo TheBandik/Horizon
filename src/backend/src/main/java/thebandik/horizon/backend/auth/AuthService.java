@@ -2,6 +2,8 @@ package thebandik.horizon.backend.auth;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import thebandik.horizon.backend.auth.dto.LoginRequest;
+import thebandik.horizon.backend.auth.dto.RegisterRequest;
 import thebandik.horizon.backend.common.errors.AlreadyExistsException;
 import thebandik.horizon.backend.common.errors.UnauthorizedException;
 import thebandik.horizon.backend.common.errors.NotFoundException;
