@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import thebandik.horizon.backend.catalog.series.Series;
 import thebandik.horizon.backend.catalog.series.SeriesRepository;
 import thebandik.horizon.backend.catalog.series.dto.SeriesRequest;
+import thebandik.horizon.backend.media.mediaSeries.MediaSeriesRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,10 +28,15 @@ class SeriesControllerTest {
 
     @Autowired
     private SeriesRepository seriesRepository;
+
+    @Autowired
+    private MediaSeriesRepository mediaSeriesRepository;
+
     private Series parent;
 
     @BeforeEach
     void setUp() {
+        mediaSeriesRepository.deleteAll();
         seriesRepository.deleteAll();
         parent = seriesRepository.save(new Series(null, "Parent", null));
     }

@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeRepository;
 import thebandik.horizon.backend.media.dto.MediaRequest;
+import thebandik.horizon.backend.media.mediaSeries.MediaSeriesRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,8 +36,12 @@ class MediaControllerTest {
     @Autowired
     private MediaTypeRepository mediaTypeRepository;
 
+    @Autowired
+    private MediaSeriesRepository mediaSeriesRepository;
+
     @BeforeEach
     void setUp() {
+        mediaSeriesRepository.deleteAll();
         mediaRepository.deleteAll();
         mediaTypeRepository.deleteAll();
     }
