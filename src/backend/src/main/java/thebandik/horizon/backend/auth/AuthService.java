@@ -3,28 +3,33 @@ package thebandik.horizon.backend.auth;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import thebandik.horizon.backend.auth.dto.LoginRequest;
+import thebandik.horizon.backend.auth.dto.LoginResponse;
 import thebandik.horizon.backend.auth.dto.RegisterRequest;
-import thebandik.horizon.backend.common.errors.UnauthorizedException;
+import thebandik.horizon.backend.auth.dto.RegisterResponse;
 import thebandik.horizon.backend.common.errors.NotFoundException;
+import thebandik.horizon.backend.common.errors.UnauthorizedException;
 import thebandik.horizon.backend.common.errors.ValidationException;
 import thebandik.horizon.backend.user.User;
 import thebandik.horizon.backend.user.UserRepository;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AuthService {
 
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
+    private final AuthMapper authMapper;
 
-    public AuthService(UserRepository users, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository users, PasswordEncoder passwordEncoder, AuthMapper authMapper) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
+        this.authMapper = authMapper;
     }
 
-    public User register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
         String email = request.email();
         String username = request.username();
 
@@ -47,17 +52,24 @@ public class AuthService {
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
 
-        return users.save(user);
+        return authMapper.registerToResponse(users.save(user));
     }
 
-    public User login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
+        String login = request.login();
+        String password = request.password();
 
-        User user = users.findByEmail(request.email()).orElseThrow(() -> new NotFoundException("EMAIL", "Email", request.email()));
+        // Попытка получить пользователя по username
+        Optional<User> userByUsername = users.findByUsername(login);
 
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new UnauthorizedException(request.email());
+        // Если пользователь не найден по username, то попытка получить его по email
+        User user = userByUsername.or(() -> users.findByEmail(login))
+                .orElseThrow(() -> new NotFoundException("LOGIN", "Login", request.login()));
+
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new UnauthorizedException(request.login());
         }
 
-        return user;
+        return authMapper.loginToResponse(user);
     }
 }

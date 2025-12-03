@@ -18,5 +18,7 @@
   "username_invalid": "Допускается использование только английских букв, цифр и символов _ и -",
   "email_invalid": "Неверный формат email",
   "password_too_short": "Пароль должен содержать не менее 8 символов",
-  "passwords_not_match": "Пароли не совпадают"
+  "passwords_not_match": "Пароли не совпадают",
+  "invalid_login": "Пользователь с таким username или email не найден",
+  "invalid_password": "Пользователь с таким username или email не найден"
 }

@@ -5,10 +5,10 @@ import thebandik.horizon.backend.common.ApiException;
 
 public class UnauthorizedException extends ApiException {
 
-    public UnauthorizedException(String email) {
+    public UnauthorizedException(String login) {
         super(
                 "UNAUTHORIZED",
-                "Invalid password for " + email,
+                "Invalid password for " + login,
                 HttpStatus.UNAUTHORIZED
         );
     }

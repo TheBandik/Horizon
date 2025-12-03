@@ -18,5 +18,7 @@
   "username_invalid": "Only English letters, digits, and the symbols _ and - are allowed",
   "email_invalid": "Invalid email format",
   "password_too_short": "The password must contain at least 8 characters",
-  "passwords_not_match": "Passwords do not match"
+  "passwords_not_match": "Passwords do not match",
+  "invalid_login": "A user with this username or email was not found",
+  "invalid_password": "Incorrect password"
 }

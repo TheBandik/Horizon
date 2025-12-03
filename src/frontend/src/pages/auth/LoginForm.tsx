@@ -1,41 +1,51 @@
-import {
-    Anchor,
-    Button,
-    PasswordInput,
-    Stack,
-    TextInput,
-} from '@mantine/core';
+import {Anchor, Button, PasswordInput, Stack, TextInput,} from '@mantine/core';
 import {useForm} from '@mantine/form';
 import {useTranslation} from 'react-i18next';
+import {type ApiError, loginUser} from "../../api/auth.ts";
+import {useNavigate} from "react-router-dom";
 
 export function LoginForm() {
+    const {t} = useTranslation();
+    const navigate = useNavigate();
+
     const form = useForm({
         initialValues: {
-            email: '',
-            name: '',
-            password: '',
-            terms: true,
-        },
-
-        validate: {
-            email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-            password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
-        },
+            login: '',
+            password: ''
+        }
     });
 
-    const {t} = useTranslation();
+    const handleSubmit = async (values: typeof form.values) => {
+        form.clearErrors();
+
+        try {
+            await loginUser({
+                login: values.login,
+                password: values.password,
+            });
+
+            navigate('/user');
+        } catch (err) {
+            const error = err as ApiError;
+
+            if (error.code === 'LOGIN_NOT_FOUND') {
+                form.setFieldError('login', t('invalid_login'));
+            } else if (error.code == 'UNAUTHORIZED') {
+                form.setFieldError('password', t('invalid_password'));
+            }
+        }
+    };
 
     return (
-        <form onSubmit={form.onSubmit(() => {
-        })}>
+        <form onSubmit={form.onSubmit(handleSubmit)}>
             <Stack>
                 <TextInput
                     required
                     label="Email / Username"
                     placeholder="user@horizon.com"
-                    value={form.values.email}
-                    onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
+                    value={form.values.login}
                     radius="md"
+                    {...form.getInputProps('login')}
                 />
 
                 <PasswordInput
@@ -43,8 +53,8 @@ export function LoginForm() {
                     label={t("password")}
                     placeholder={t("password_placeholder")}
                     value={form.values.password}
-                    onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
                     radius="md"
+                    {...form.getInputProps('password')}
                 />
             </Stack>
 

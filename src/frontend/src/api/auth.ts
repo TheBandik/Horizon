@@ -4,6 +4,17 @@ export type RegisterDto = {
     password: string;
 };
 
+export type LoginDto = {
+    login: string;
+    password: string;
+};
+
+export type LoginResponse = {
+    id: number;
+    username: string;
+    email: string;
+};
+
 export type ApiError = {
     code: string;
     message: string;
@@ -13,8 +24,10 @@ export type ApiError = {
     details: Record<string, string>;
 };
 
+const API_URL = 'http://127.0.0.1:8080'
+
 export async function registerUser(dto: RegisterDto): Promise<void> {
-    const response = await fetch('http://127.0.0.1:8080/api/auth/register', {
+    const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto),
@@ -25,17 +38,34 @@ export async function registerUser(dto: RegisterDto): Promise<void> {
 
         try {
             data = await response.json();
-        } catch {
-            // тело не JSON — тогда просто кинем обычную ошибку
-        }
+        } catch { /* empty */ }
 
         if (data && data.code) {
-            // вот сюда попадёт твой EMAIL_ALREADY_EXISTS / USERNAME_ALREADY_EXISTS
+            throw data;
+        }
+        throw new Error('Registration failed');
+    }
+}
+
+export async function loginUser(dto: LoginDto): Promise<LoginResponse> {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto),
+    });
+
+    if (!response.ok) {
+        let data: ApiError | null = null;
+        try {
+            data = await response.json();
+        } catch { /* empty */ }
+
+        if (data && data.code) {
             throw data;
         }
 
-        throw new Error('Registration failed');
+        throw new Error('Login failed');
     }
 
-    // если всё ок — просто выходим
+    return response.json();
 }

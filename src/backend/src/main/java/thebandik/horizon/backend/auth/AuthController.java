@@ -10,7 +10,6 @@ import thebandik.horizon.backend.auth.dto.LoginRequest;
 import thebandik.horizon.backend.auth.dto.LoginResponse;
 import thebandik.horizon.backend.auth.dto.RegisterRequest;
 import thebandik.horizon.backend.auth.dto.RegisterResponse;
-import thebandik.horizon.backend.user.User;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,27 +22,13 @@ public class AuthController {
 
     @PostMapping("register")
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
-        User user = auth.register(request);
-
-        RegisterResponse response = new RegisterResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getUsername(),
-                "Registration successful"
-        );
-
+        RegisterResponse response = auth.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        User user = auth.login(request);
-
-        LoginResponse response = new LoginResponse(
-                user.getEmail(),
-                "Login successful"
-        );
-
+        LoginResponse response = auth.login(request);
         return ResponseEntity.ok(response);
     }
 }

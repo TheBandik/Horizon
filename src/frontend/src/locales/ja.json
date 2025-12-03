@@ -18,5 +18,7 @@
   "username_invalid": "英字、数字、記号「_」と「-」のみ使用できます",
   "email_invalid": "emailの形式が正しくありません",
   "password_too_short": "パスワードは8文字以上である必要があります",
-  "passwords_not_match": "パスワードが一致していません"
+  "passwords_not_match": "パスワードが一致していません",
+  "invalid_login": "このusernameはemailは見つかりませんでした",
+  "invalid_password": "パスワードが正しくありません"
 }
