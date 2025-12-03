@@ -4,11 +4,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import thebandik.horizon.backend.auth.dto.LoginRequest;
 import thebandik.horizon.backend.auth.dto.RegisterRequest;
-import thebandik.horizon.backend.common.errors.AlreadyExistsException;
 import thebandik.horizon.backend.common.errors.UnauthorizedException;
 import thebandik.horizon.backend.common.errors.NotFoundException;
+import thebandik.horizon.backend.common.errors.ValidationException;
 import thebandik.horizon.backend.user.User;
 import thebandik.horizon.backend.user.UserRepository;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -25,12 +28,18 @@ public class AuthService {
         String email = request.email();
         String username = request.username();
 
+        Map<String, String> exceptions = new HashMap<>();
+
         if (users.existsByEmail(email)) {
-            throw new AlreadyExistsException("EMAIL", "Email", email);
+            exceptions.put("email", "EMAIL_ALREADY_EXISTS");
         }
 
         if (users.existsByUsername(username)) {
-            throw new AlreadyExistsException("USERNAME", "Username", username);
+            exceptions.put("username", "USERNAME_ALREADY_EXISTS");
+        }
+
+        if (!exceptions.isEmpty()) {
+            throw new ValidationException(exceptions);
         }
 
         User user = new User();

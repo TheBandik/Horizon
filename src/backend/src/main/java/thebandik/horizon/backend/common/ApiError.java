@@ -9,6 +9,6 @@ public record ApiError(
         int status,
         String path,
         Instant timestamp,
-        Map<String, Object> details
+        Map<String, String> details
 ) {
 }

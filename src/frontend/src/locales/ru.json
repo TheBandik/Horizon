@@ -12,5 +12,11 @@
   "series": "Сериалы",
   "books": "Книги",
   "comics": "Комиксы",
-  "logout": "Выйти"
+  "logout": "Выйти",
+  "email_already_exists": "Такой email уже используется",
+  "username_already_exists": "Такой username уже используется",
+  "username_invalid": "Допускается использование только английских букв, цифр и символов _ и -",
+  "email_invalid": "Неверный формат email",
+  "password_too_short": "Пароль должен содержать не менее 8 символов",
+  "passwords_not_match": "Пароли не совпадают"
 }

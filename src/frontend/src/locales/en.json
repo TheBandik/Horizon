@@ -12,5 +12,11 @@
   "series": "Series",
   "books": "Books",
   "comics": "Comics",
-  "logout": "Logout"
+  "logout": "Logout",
+  "email_already_exists": "This email is already in use",
+  "username_already_exists": "This username is already in use",
+  "username_invalid": "Only English letters, digits, and the symbols _ and - are allowed",
+  "email_invalid": "Invalid email format",
+  "password_too_short": "The password must contain at least 8 characters",
+  "passwords_not_match": "Passwords do not match"
 }
