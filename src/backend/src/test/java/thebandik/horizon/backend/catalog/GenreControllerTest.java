@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import thebandik.horizon.backend.catalog.genre.Genre;
 import thebandik.horizon.backend.catalog.genre.GenreRepository;
 import thebandik.horizon.backend.catalog.genre.dto.GenreRequest;
+import thebandik.horizon.backend.media.mediaGenre.MediaGenreRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,8 +29,12 @@ class GenreControllerTest {
     @Autowired
     private GenreRepository genreRepository;
 
+    @Autowired
+    private MediaGenreRepository mediaGenreRepository;
+
     @BeforeEach
     void setUp() {
+        mediaGenreRepository.deleteAll();
         genreRepository.deleteAll();
     }
 
