@@ -815,6 +815,11 @@
     "@types/babel__core" "^7.20.5"
     react-refresh "^0.18.0"
 
+"@yandex/smart-captcha@^2.9.0":
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/@yandex/smart-captcha/-/smart-captcha-2.9.0.tgz#dc9da0b327df42d7ce9ffbd54d7c198be6e0ae88"
+  integrity sha512-jNumIxsmtMtvEQL+r8cQdQ869Mw+FvUTinCgmrpKBzvnvdC/9dUWILJ7hLZaQZlxdiWZ6kHv3LNx/0PPXXsGpA==
+
 acorn-jsx@^5.3.2:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz#7ed5bb55908b3b2f1bc55c6af1653bada7f07937"

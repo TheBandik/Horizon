@@ -7,6 +7,7 @@ export type RegisterDto = {
 export type LoginDto = {
     login: string;
     password: string;
+    captchaToken: string;
 };
 
 export type LoginResponse = {
@@ -24,7 +25,7 @@ export type ApiError = {
     details: Record<string, string>;
 };
 
-const API_URL = 'http://127.0.0.1:8080'
+const API_URL = import.meta.env.VITE_API_URL;
 
 export async function registerUser(dto: RegisterDto): Promise<void> {
     const response = await fetch(`${API_URL}/api/auth/register`, {
