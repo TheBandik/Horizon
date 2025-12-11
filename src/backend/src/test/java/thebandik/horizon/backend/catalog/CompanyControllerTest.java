@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import thebandik.horizon.backend.catalog.company.Company;
 import thebandik.horizon.backend.catalog.company.CompanyRepository;
 import thebandik.horizon.backend.catalog.company.dto.CompanyRequest;
+import thebandik.horizon.backend.media.mediaCompanyRole.MediaCompanyRoleRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,8 +29,12 @@ class CompanyControllerTest {
     @Autowired
     private CompanyRepository companyRepository;
 
+    @Autowired
+    private MediaCompanyRoleRepository mediaCompanyRoleRepository;
+
     @BeforeEach
     void setUp() {
+        mediaCompanyRoleRepository.deleteAll();
         companyRepository.deleteAll();
     }
 

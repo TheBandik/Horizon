@@ -112,7 +112,8 @@ public class AuthControllerTest {
 
         LoginRequest loginRequest = new LoginRequest(
                 "login@example.com",
-                "secret"
+                "secret",
+                ""
         );
 
         mockMvc.perform(post("/api/auth/register")
@@ -130,7 +131,8 @@ public class AuthControllerTest {
     void login_shouldReturn404_whenEmailNotFound() throws Exception {
         LoginRequest loginRequest = new LoginRequest(
                 "notfound@example.com",
-                "anypassword"
+                "anypassword",
+                ""
         );
 
         mockMvc.perform(post("/api/auth/login")
@@ -149,7 +151,8 @@ public class AuthControllerTest {
 
         LoginRequest loginRequest = new LoginRequest(
                 "login2@example.com",
-                "wrong"
+                "wrong",
+                ""
         );
 
         mockMvc.perform(post("/api/auth/register")
