@@ -1,5 +1,7 @@
 package thebandik.horizon.backend.media;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
@@ -71,5 +73,9 @@ public class MediaService {
         }
 
         mediaRepository.deleteById(id);
+    }
+
+    public Page<Media> searchMediaByTitle(String query, int page, int size) {
+        return mediaRepository.searchMediaByTitle(query, PageRequest.of(page, size));
     }
 }

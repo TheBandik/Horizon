@@ -1,11 +1,13 @@
 package thebandik.horizon.backend.media;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import thebandik.horizon.backend.catalog.mediaType.dto.MediaTypeResponse;
+import thebandik.horizon.backend.common.PageResponse;
 import thebandik.horizon.backend.media.dto.MediaRequest;
 import thebandik.horizon.backend.media.dto.MediaResponse;
 
@@ -80,6 +82,16 @@ public class MediaController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public PageResponse<MediaResponse> search(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<MediaResponse> searchResult = mediaService.searchMediaByTitle(query, page, size).map(MediaResponse::from);
+        return PageResponse.from(searchResult);
     }
 
     @PutMapping("/{id}")
