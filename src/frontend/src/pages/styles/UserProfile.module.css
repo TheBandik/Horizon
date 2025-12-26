@@ -33,6 +33,7 @@
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
     border-radius: var(--mantine-radius-sm);
     font-weight: 500;
+    gap: 8px;
 
     @mixin hover {
         background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
@@ -51,6 +52,17 @@
             .linkIcon {
                 color: var(--mantine-color-accent-4);
             }
+        }
+    }
+
+    &[data-disabled] {
+        color: var(--mantine-color-gray-5);
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.6;
+
+        .linkIcon {
+            color: var(--mantine-color-gray-5);
         }
     }
 }

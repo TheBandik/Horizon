@@ -1,0 +1,1 @@
+INSERT INTO media_types(name) VALUES ('Theatre') ON CONFLICT (name) DO NOTHING;

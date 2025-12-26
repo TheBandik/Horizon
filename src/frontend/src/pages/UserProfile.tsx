@@ -3,7 +3,9 @@ import {
     IconBook2,
     IconDeviceGamepad2,
     IconDeviceTv,
+    IconGripVertical,
     IconLogout,
+    IconMasksTheater,
     IconMovie,
     IconPlus,
     IconSearch,
@@ -23,18 +25,18 @@ import {
 } from "@mantine/core";
 import classes from "./styles/UserProfile.module.css";
 import packageJson from "../../package.json";
-import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
-import { ThemeToggle } from "../components/ThemeToggle.tsx";
-import { useDebouncedValue, useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useState } from "react";
-import { type MediaResponse, searchMedia } from "../api/media.ts";
-import { MediaEditModal } from "../components/MediaEditModal";
-import {
-    createMediaUser,
-    type DatePrecision,
-    type MediaUserCreateRequest,
-} from "../api/mediaUser.ts";
+import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
+import {ThemeToggle} from "../components/ThemeToggle.tsx";
+import {useDebouncedValue, useDisclosure, useMediaQuery} from "@mantine/hooks";
+import {useTranslation} from "react-i18next";
+import React, {type ComponentType, useEffect, useMemo, useState} from "react";
+import {type MediaResponse, searchMedia} from "../api/media.ts";
+import {MediaEditModal} from "../components/MediaEditModal";
+import {createMediaUser, type DatePrecision, type MediaUserCreateRequest} from "../api/mediaUser.ts";
+
+import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {arrayMove, SortableContext, useSortable, verticalListSortingStrategy} from "@dnd-kit/sortable";
+import {CSS} from "@dnd-kit/utilities";
 
 type PartialDateValue = { day: string; month: string; year: string };
 
@@ -50,7 +52,7 @@ function buildEventDatePayload(date: PartialDateValue): {
     const m = date.month.trim();
     const d = date.day.trim();
 
-    if (!y) return { eventDate: null, precision: null };
+    if (!y) return {eventDate: null, precision: null};
 
     if (y && m && d) {
         return {
@@ -79,8 +81,94 @@ function normalizeRating(rating: number | null): number | null {
     return Math.max(1, Math.min(10, v));
 }
 
+type MediaNavItem = {
+    id: string;
+    link: string;
+    label: string;
+    icon: ComponentType<{ className?: string; stroke?: number; size?: number }>;
+    disabled?: boolean;
+};
+
+const NAV_ORDER_STORAGE_KEY = "horizon.nav.order.v1";
+
+function applySavedOrder<T extends { id: string }>(defaults: T[], savedIds: string[] | null): T[] {
+    if (!savedIds || savedIds.length === 0) return defaults;
+
+    const byId = new Map(defaults.map((x) => [x.id, x] as const));
+    const ordered: T[] = [];
+
+    for (const id of savedIds) {
+        const item = byId.get(id);
+        if (item) ordered.push(item);
+        byId.delete(id);
+    }
+
+    for (const item of byId.values()) ordered.push(item);
+    return ordered;
+}
+
+function SortableNavLink({
+                             item,
+                             activeId,
+                             onActivate,
+                         }: {
+    item: MediaNavItem;
+    activeId: string;
+    onActivate: (id: string) => void;
+}) {
+    const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
+        id: item.id,
+        disabled: Boolean(item.disabled),
+    });
+
+    const style: React.CSSProperties = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.7 : undefined,
+    };
+
+    return (
+        <a
+            ref={setNodeRef}
+            style={style}
+            className={classes.link}
+            data-active={!item.disabled && item.id === activeId || undefined}
+            data-disabled={item.disabled || undefined}
+            href={item.link || "#"}
+            onClick={(e) => {
+                e.preventDefault();
+                if (item.disabled) return;
+                onActivate(item.id);
+            }}
+        >
+            {/* drag-handle: только за него */}
+                <span
+                    {...(!item.disabled ? attributes : {})}
+                    {...(!item.disabled ? listeners : {})}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 18,
+                        height: 18,
+                        opacity: item.disabled ? 0.35 : 0.6,
+                        cursor: item.disabled ? "not-allowed" : "grab",
+                    }}
+                    aria-hidden="true"
+                >
+                <IconGripVertical size={16} stroke={1.5}/>
+            </span>
+
+                <item.icon className={classes.linkIcon} stroke={1.5}/>
+                <span>{item.label}</span>
+        </a>
+    );
+}
+
 export function UserProfile() {
-    const [active, setActive] = useState("Billing");
+    const [active, setActive] = useState("games");
     const isMobile = useMediaQuery("(max-width: 600px)");
 
     const [query, setQuery] = useState("");
@@ -95,7 +183,7 @@ export function UserProfile() {
     });
 
     /** ===== modal state ===== */
-    const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+    const [modalOpened, {open: openModal, close: closeModal}] = useDisclosure(false);
     const [modalItem, setModalItem] = useState<MediaResponse | null>(null);
 
     const [rating, setRating] = useState<number | null>(null);
@@ -115,18 +203,17 @@ export function UserProfile() {
 
         setModalItem(item);
         setRating(null);
-        setPartialDate({ day: "", month: "", year: "" });
+        setPartialDate({day: "", month: "", year: ""});
         setStatusId(null);
 
         openModal();
     };
 
     const submittingDisabled = useMemo(() => {
-        // минимальная защита от пустого запроса
         if (!modalItem) return true;
         if (!userId) return true;
-        if (!statusId) return true;
-        return false;
+        return !statusId;
+
     }, [modalItem, userId, statusId]);
 
     const handleSubmit = async () => {
@@ -137,7 +224,7 @@ export function UserProfile() {
             return;
         }
 
-        const { eventDate, precision } = buildEventDatePayload(partialDate);
+        const {eventDate, precision} = buildEventDatePayload(partialDate);
 
         const body: MediaUserCreateRequest = {
             mediaId: Number(modalItem.id),
@@ -149,10 +236,12 @@ export function UserProfile() {
         };
 
         try {
-            await createMediaUser({ body });
+            await createMediaUser({body});
             closeModal();
-        } catch (e: any) {
-            alert(e?.message ?? "Не удалось сохранить");
+        } catch (e) {
+            const message =
+                e instanceof Error ? e.message : "Неизвестная ошибка";
+            alert(message);
         }
     };
 
@@ -174,14 +263,20 @@ export function UserProfile() {
                 setLoading(true);
                 setError(null);
 
-                const data = await searchMedia({ q, page: 0, size: 10, signal: controller.signal });
+                const data = await searchMedia({q, page: 0, size: 10, signal: controller.signal});
 
                 setResults(data.items);
                 if (data.items.length > 0) combobox.openDropdown();
                 else combobox.closeDropdown();
-            } catch (e: any) {
-                if (e?.name === "AbortError") return;
-                setError(e?.message ?? "Search failed");
+            } catch (e) {
+                if (e instanceof DOMException && e.name === "AbortError") {
+                    return;
+                }
+
+                const message =
+                    e instanceof Error ? e.message : "Search failed";
+
+                setError(message);
                 setResults([]);
                 combobox.closeDropdown();
             } finally {
@@ -190,17 +285,93 @@ export function UserProfile() {
         })();
 
         return () => controller.abort();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debounced]);
 
-    const { t } = useTranslation();
+    const {t} = useTranslation();
 
-    const data = [
-        { link: "", label: t("games"), icon: IconDeviceGamepad2 },
-        { link: "", label: t("movies"), icon: IconMovie },
-        { link: "", label: t("series"), icon: IconDeviceTv },
-        { link: "", label: t("books"), icon: IconBook2 },
-        { link: "", label: t("comics"), icon: IconBat },
-    ];
+    /** ===== NAV state with persistence ===== */
+    const [mediaTypes, setMediaTypes] = useState<MediaNavItem[]>(() => {
+        const defaults: MediaNavItem[] = [
+            {id: "games", link: "#", label: t("games"), icon: IconDeviceGamepad2},
+            {id: "movies", link: "#", label: t("movies"), icon: IconMovie},
+            {id: "theatre", link: "#", label: t("theatre"), icon: IconMasksTheater},
+            {id: "books", link: "#", label: t("books"), icon: IconBook2},
+            {id: "series", link: "#", label: t("series") + " (soon)", icon: IconDeviceTv, disabled: true},
+            {id: "comics", link: "#", label: t("comics") + " (soon)", icon: IconBat, disabled: true},
+        ];
+
+        try {
+            const raw = localStorage.getItem(NAV_ORDER_STORAGE_KEY);
+            const saved = raw ? (JSON.parse(raw) as string[]) : null;
+            return applySavedOrder(defaults, saved);
+        } catch {
+            return defaults;
+        }
+    });
+
+    useEffect(() => {
+        setMediaTypes((prev) =>
+            prev.map((x) => {
+                switch (x.id) {
+                    case "games":
+                        return {...x, label: t("games")};
+                    case "movies":
+                        return {...x, label: t("movies")};
+                    case "theatre":
+                        return {...x, label: t("theatre")};
+                    case "books":
+                        return {...x, label: t("books")};
+                    case "series":
+                        return {...x, label: t("series") + " (soon)"};
+                    case "comics":
+                        return {...x, label: t("comics") + " (soon)"};
+                    default:
+                        return x;
+                }
+            }),
+        );
+    }, [t]);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(NAV_ORDER_STORAGE_KEY, JSON.stringify(mediaTypes.map((x) => x.id)));
+        } catch {
+            // ignore
+        }
+    }, [mediaTypes]);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {distance: 6},
+        }),
+    );
+
+    const onDragEnd = (event: DragEndEvent) => {
+        const {active: a, over} = event;
+        if (!over) return;
+        if (a.id === over.id) return;
+
+        setMediaTypes((items) => {
+            const oldIndex = items.findIndex((i) => i.id === a.id);
+            const overIndex = items.findIndex((i) => i.id === over.id);
+            if (oldIndex === -1 || overIndex === -1) return items;
+
+            const firstDisabledIndex = items.findIndex((i) => i.disabled);
+            const boundary = firstDisabledIndex === -1 ? items.length : firstDisabledIndex;
+
+            if (boundary <= 0) return items;
+
+            const overIsDisabled = items[overIndex]?.disabled;
+            let newIndex = overIsDisabled ? boundary - 1 : overIndex;
+
+            newIndex = Math.min(newIndex, boundary - 1);
+
+            if (newIndex === oldIndex) return items;
+
+            return arrayMove(items, oldIndex, newIndex);
+        });
+    };
 
     // Тестовые данные таблицы
     const elements = [
@@ -223,22 +394,6 @@ export function UserProfile() {
             <Table.Td>{element.user_status}</Table.Td>
             <Table.Td>{element.rating}</Table.Td>
         </Table.Tr>
-    ));
-
-    const links = data.map((item) => (
-        <a
-            className={classes.link}
-            data-active={item.label === active || undefined}
-            href={item.link}
-            key={item.label}
-            onClick={(event) => {
-                event.preventDefault();
-                setActive(item.label);
-            }}
-        >
-            <item.icon className={classes.linkIcon} stroke={1.5} />
-            <span>{item.label}</span>
-        </a>
     ));
 
     return (
@@ -268,7 +423,19 @@ export function UserProfile() {
                                 {packageJson.version}
                             </Text>
                         </Group>
-                        {links}
+
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+                            <SortableContext items={mediaTypes.map((x) => x.id)} strategy={verticalListSortingStrategy}>
+                                {mediaTypes.map((item) => (
+                                    <SortableNavLink
+                                        key={item.id}
+                                        item={item}
+                                        activeId={active}
+                                        onActivate={setActive}
+                                    />
+                                ))}
+                            </SortableContext>
+                        </DndContext>
                     </div>
 
                     <div className={classes.footer}>
@@ -277,7 +444,7 @@ export function UserProfile() {
                         </a>
 
                         <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
-                            <IconLogout className={classes.linkIcon} stroke={1.5} />
+                            <IconLogout className={classes.linkIcon} stroke={1.5}/>
                             <span>{t("logout")}</span>
                         </a>
                     </div>
@@ -301,8 +468,8 @@ export function UserProfile() {
                                     size="md"
                                     placeholder="Search media"
                                     w="50vw"
-                                    leftSection={<IconSearch size={18} stroke={1.5} />}
-                                    rightSection={loading ? <Loader size="xs" /> : null}
+                                    leftSection={<IconSearch size={18} stroke={1.5}/>}
+                                    rightSection={loading ? <Loader size="xs"/> : null}
                                     value={query}
                                     onChange={(e) => setQuery(e.currentTarget.value)}
                                     onFocus={() => {
@@ -332,19 +499,19 @@ export function UserProfile() {
                                                     gap: 12,
                                                 }}
                                             >
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                                    <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                                                        <span style={{ fontWeight: 600 }}>
+                                                <div style={{display: "flex", flexDirection: "column", gap: 2}}>
+                                                    <div style={{display: "flex", gap: 8, alignItems: "baseline"}}>
+                                                        <span style={{fontWeight: 600}}>
                                                             {m.title ?? m.originalTitle ?? "Untitled"}
                                                         </span>
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>
+                                                        <span style={{opacity: 0.7, fontSize: 12}}>
                                                             {m.mediaType?.code}
                                                             {m.releaseDate ? ` • ${m.releaseDate.slice(0, 4)}` : ""}
                                                         </span>
                                                     </div>
 
                                                     {m.originalTitle && m.title && m.originalTitle !== m.title && (
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>
+                                                        <span style={{opacity: 0.7, fontSize: 12}}>
                                                             {m.originalTitle}
                                                         </span>
                                                     )}
@@ -361,7 +528,7 @@ export function UserProfile() {
                                                     }}
                                                     aria-label="Open"
                                                 >
-                                                    <IconPlus size={16} stroke={1.5} />
+                                                    <IconPlus size={16} stroke={1.5}/>
                                                 </ActionIcon>
                                             </div>
                                         </Combobox.Option>
@@ -371,7 +538,7 @@ export function UserProfile() {
                         </Combobox>
 
                         <ActionIcon size={40} radius="xl" variant="filled" ml={"xs"}>
-                            <IconPlus size={18} stroke={1.5} />
+                            <IconPlus size={18} stroke={1.5}/>
                         </ActionIcon>
                     </Flex>
 
@@ -398,10 +565,10 @@ export function UserProfile() {
                 </Stack>
 
                 {!isMobile && (
-                    <div style={{ position: "absolute", right: 20, bottom: 15 }}>
+                    <div style={{position: "absolute", right: 20, bottom: 15}}>
                         <Group gap="xs">
-                            <LanguageSwitcher />
-                            <ThemeToggle />
+                            <LanguageSwitcher/>
+                            <ThemeToggle/>
                         </Group>
                     </div>
                 )}

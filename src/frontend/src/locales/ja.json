@@ -12,6 +12,7 @@
   "series": "テレビドラマ",
   "books": "小説",
   "comics": "漫画",
+  "theatre": "劇場",
   "logout": "ログアウト",
   "email_already_exists": "このemailは既に使用されています",
   "username_already_exists": "このusernameは既に使用されています",
