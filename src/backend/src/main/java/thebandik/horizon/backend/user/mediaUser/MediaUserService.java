@@ -37,9 +37,8 @@ public class MediaUserService {
     }
 
     @Transactional
-    public MediaUser create(MediaUserCreateRequest request) {
+    public MediaUser create(MediaUserCreateRequest request, Long userId) {
         Long mediaId = request.mediaId();
-        Long userId = request.userId();
         Long statusId = request.statusId();
         LocalDate eventDate = request.eventDate();
         DatePrecision precision = DatePrecision.valueOf(request.precision());

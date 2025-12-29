@@ -1,3 +1,5 @@
+import {apiFetch} from '../http.ts';
+
 export type RegisterDto = {
     username: string;
     email: string;
@@ -11,9 +13,7 @@ export type LoginDto = {
 };
 
 export type LoginResponse = {
-    id: number;
-    username: string;
-    email: string;
+    accessToken: string;
 };
 
 export type ApiError = {
@@ -30,7 +30,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 export async function registerUser(dto: RegisterDto): Promise<void> {
     const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(dto),
     });
 
@@ -39,7 +39,8 @@ export async function registerUser(dto: RegisterDto): Promise<void> {
 
         try {
             data = await response.json();
-        } catch { /* empty */ }
+        } catch { /* empty */
+        }
 
         if (data && data.code) {
             throw data;
@@ -49,24 +50,8 @@ export async function registerUser(dto: RegisterDto): Promise<void> {
 }
 
 export async function loginUser(dto: LoginDto): Promise<LoginResponse> {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
+    return apiFetch<LoginResponse>('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto),
     });
-
-    if (!response.ok) {
-        let data: ApiError | null = null;
-        try {
-            data = await response.json();
-        } catch { /* empty */ }
-
-        if (data && data.code) {
-            throw data;
-        }
-
-        throw new Error('Login failed');
-    }
-
-    return response.json();
 }

@@ -37,6 +37,8 @@ import {createMediaUser, type DatePrecision, type MediaUserCreateRequest} from "
 import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import {arrayMove, SortableContext, useSortable, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import {CSS} from "@dnd-kit/utilities";
+import {logout} from "../api/auth/logout.ts";
+import {useNavigate} from "react-router-dom";
 
 type PartialDateValue = { day: string; month: string; year: string };
 
@@ -142,27 +144,27 @@ function SortableNavLink({
             }}
         >
             {/* drag-handle: только за него */}
-                <span
-                    {...(!item.disabled ? attributes : {})}
-                    {...(!item.disabled ? listeners : {})}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 18,
-                        height: 18,
-                        opacity: item.disabled ? 0.35 : 0.6,
-                        cursor: item.disabled ? "not-allowed" : "grab",
-                    }}
-                    aria-hidden="true"
-                >
+            <span
+                {...(!item.disabled ? attributes : {})}
+                {...(!item.disabled ? listeners : {})}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 18,
+                    height: 18,
+                    opacity: item.disabled ? 0.35 : 0.6,
+                    cursor: item.disabled ? "not-allowed" : "grab",
+                }}
+                aria-hidden="true"
+            >
                 <IconGripVertical size={16} stroke={1.5}/>
             </span>
 
-                <item.icon className={classes.linkIcon} stroke={1.5}/>
-                <span>{item.label}</span>
+            <item.icon className={classes.linkIcon} stroke={1.5}/>
+            <span>{item.label}</span>
         </a>
     );
 }
@@ -188,6 +190,8 @@ export function UserProfile() {
 
     const [rating, setRating] = useState<number | null>(null);
 
+    const navigate = useNavigate();
+
     const [partialDate, setPartialDate] = useState<PartialDateValue>({
         day: "",
         month: "",
@@ -195,8 +199,6 @@ export function UserProfile() {
     });
 
     const [statusId, setStatusId] = useState<number | null>(null);
-
-    const userId = 1; // TODO: подставь реальный userId
 
     const openItemModal = (item: MediaResponse) => {
         combobox.closeDropdown();
@@ -211,10 +213,9 @@ export function UserProfile() {
 
     const submittingDisabled = useMemo(() => {
         if (!modalItem) return true;
-        if (!userId) return true;
         return !statusId;
 
-    }, [modalItem, userId, statusId]);
+    }, [modalItem, statusId]);
 
     const handleSubmit = async () => {
         if (!modalItem) return;
@@ -228,7 +229,6 @@ export function UserProfile() {
 
         const body: MediaUserCreateRequest = {
             mediaId: Number(modalItem.id),
-            userId: Number(userId),
             statusId: Number(statusId),
             rating: normalizeRating(rating),
             eventDate,
@@ -443,7 +443,15 @@ export function UserProfile() {
                             <span>TheBandik</span>
                         </a>
 
-                        <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
+                        <a
+                            href="#"
+                            className={classes.link}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                logout();
+                                navigate('/auth/login', { replace: true });
+                            }}
+                        >
                             <IconLogout className={classes.linkIcon} stroke={1.5}/>
                             <span>{t("logout")}</span>
                         </a>

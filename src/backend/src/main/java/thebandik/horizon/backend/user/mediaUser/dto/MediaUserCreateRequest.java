@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 public record MediaUserCreateRequest(
         Long mediaId,
-        Long userId,
         Long statusId,
         Short rating,
         LocalDate eventDate,

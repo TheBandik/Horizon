@@ -1,10 +1,11 @@
 import { Anchor, Button, PasswordInput, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useTranslation } from 'react-i18next';
-import { type ApiError, loginUser } from '../../api/auth.ts';
+import { type ApiError, loginUser } from '../../api/auth/auth.ts';
 import { useNavigate } from 'react-router-dom';
 import { SmartCaptcha } from '@yandex/smart-captcha';
 import { useState, useCallback } from 'react';
+import { setToken } from '../../api/auth/token.ts';
 
 export function LoginForm() {
     const { t } = useTranslation();
@@ -45,12 +46,13 @@ export function LoginForm() {
         try {
             setSubmitting(true);
 
-            await loginUser({
+            const { accessToken} = await loginUser({
                 login: values.login,
                 password: values.password,
                 captchaToken,
             });
 
+            setToken(accessToken);
             navigate('/user');
         } catch (err) {
             const error = err as ApiError;

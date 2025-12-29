@@ -1,7 +1,7 @@
 import {Button, PasswordInput, Stack, TextInput,} from '@mantine/core';
 import {useForm} from '@mantine/form';
 import {useTranslation} from 'react-i18next';
-import {type ApiError, registerUser} from "../../api/auth.ts";
+import {type ApiError, registerUser} from "../../api/auth/auth.ts";
 import {useNavigate} from "react-router-dom";
 
 export function RegisterForm() {

@@ -2,10 +2,9 @@ package thebandik.horizon.backend.user.mediaUser;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import thebandik.horizon.backend.common.CurrentUser;
 import thebandik.horizon.backend.user.mediaUser.dto.MediaUserCreateRequest;
 import thebandik.horizon.backend.user.mediaUser.dto.MediaUserResponse;
 
@@ -20,8 +19,11 @@ public class MediaUserController {
     }
 
     @PostMapping
-    public ResponseEntity<MediaUserResponse> create(@RequestBody MediaUserCreateRequest request) {
-        MediaUser mediaUser = mediaUserService.create(request);
+    public ResponseEntity<MediaUserResponse> create(
+            @RequestBody MediaUserCreateRequest request,
+            @CurrentUser Long userId
+    ) {
+        MediaUser mediaUser = mediaUserService.create(request, userId);
 
         MediaUserResponse response = new MediaUserResponse(
                 mediaUser.getId(),

@@ -1,15 +1,11 @@
 import {createTheme, MantineProvider} from '@mantine/core';
-import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import {BrowserRouter} from 'react-router-dom';
 
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/dropzone/styles.css';
 
-import {AuthForm} from "./pages/auth/AuthForm.tsx";
-import {LoginForm} from "./pages/auth/LoginForm.tsx";
-import {RegisterForm} from "./pages/auth/RegisterForm.tsx";
-import {UserProfile} from "./pages/UserProfile.tsx";
-import {CreateMedia} from "./pages/CreateMedia.tsx";
+import {AppRouter} from "./AppRouter.tsx";
 
 export default function App() {
 
@@ -54,42 +50,11 @@ export default function App() {
         },
     });
 
-    return <MantineProvider theme={theme}>{
-        <BrowserRouter>
-            <Routes>
-                {/* Страница авторизации */}
-                <Route
-                    path="/login"
-                    element={
-                        <AuthForm>
-                            <LoginForm/>
-                        </AuthForm>
-                    }
-                />
-                {/*Страница регистрации*/}
-                <Route
-                    path="/register"
-                    element={
-                        <AuthForm>
-                            <RegisterForm/>
-                        </AuthForm>
-                    }
-                />
-                {/* Страница пользователя */}
-                <Route
-                    path="/user"
-                    element={
-                        <UserProfile/>
-                    }
-                />
-                {/* Страница добавления нового медиа */}
-                <Route
-                    path="/create"
-                    element={
-                        <CreateMedia/>
-                    }
-                />
-            </Routes>
-        </BrowserRouter>
-    }</MantineProvider>;
+    return (
+        <MantineProvider theme={theme}>
+            <BrowserRouter>
+                <AppRouter/>
+            </BrowserRouter>
+        </MantineProvider>
+    );
 }
