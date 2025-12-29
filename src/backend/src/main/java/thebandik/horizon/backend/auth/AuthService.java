@@ -22,11 +22,18 @@ public class AuthService {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final AuthMapper authMapper;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository users, PasswordEncoder passwordEncoder, AuthMapper authMapper) {
+    public AuthService(
+            UserRepository users,
+            PasswordEncoder passwordEncoder,
+            AuthMapper authMapper,
+            JwtService jwtService
+    ) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.authMapper = authMapper;
+        this.jwtService = jwtService;
     }
 
     public RegisterResponse register(RegisterRequest request) {
@@ -70,6 +77,8 @@ public class AuthService {
             throw new UnauthorizedException(request.login());
         }
 
-        return authMapper.loginToResponse(user);
+        String token = jwtService.generate(user.getId());
+
+        return authMapper.loginToResponse(token);
     }
 }

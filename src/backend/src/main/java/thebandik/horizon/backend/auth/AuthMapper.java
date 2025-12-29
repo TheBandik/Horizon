@@ -7,11 +7,9 @@ import thebandik.horizon.backend.user.User;
 
 @Component
 public class AuthMapper {
-    public LoginResponse loginToResponse(User user) {
+    public LoginResponse loginToResponse(String token) {
         return new LoginResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail()
+                token
         );
     }
 
