@@ -34,6 +34,8 @@
     border-radius: var(--mantine-radius-sm);
     font-weight: 500;
     gap: 8px;
+    -webkit-user-drag: none;
+    user-select: none;
 
     @mixin hover {
         background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));

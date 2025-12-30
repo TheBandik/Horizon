@@ -158,7 +158,11 @@ function SortableNavLink({
     return (
         <a
             ref={setNodeRef}
-            style={style}
+            style={{
+                ...style,
+            }}
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
             className={classes.link}
             data-active={!item.disabled && item.id === activeId || undefined}
             data-disabled={item.disabled || undefined}
