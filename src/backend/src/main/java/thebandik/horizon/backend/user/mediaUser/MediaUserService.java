@@ -11,8 +11,10 @@ import thebandik.horizon.backend.media.MediaRepository;
 import thebandik.horizon.backend.user.User;
 import thebandik.horizon.backend.user.UserRepository;
 import thebandik.horizon.backend.user.mediaUser.dto.MediaUserCreateRequest;
+import thebandik.horizon.backend.user.mediaUser.dto.MediaUserGetByMediaTypeResponse;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class MediaUserService {
@@ -22,18 +24,22 @@ public class MediaUserService {
     private final StatusRepository statusRepository;
     private final MediaUserRepository mediaUserRepository;
     private final MediaUserHistoryRepository mediaUserHistoryRepository;
+    private final MediaUserMapper mediaUserMapper;
 
     public MediaUserService(
             MediaRepository mediaRepository,
             UserRepository userRepository,
             StatusRepository statusRepository,
             MediaUserRepository mediaUserRepository,
-            MediaUserHistoryRepository mediaUserHistoryRepository) {
+            MediaUserHistoryRepository mediaUserHistoryRepository,
+            MediaUserMapper mediaUserMapper
+    ) {
         this.mediaRepository = mediaRepository;
         this.userRepository = userRepository;
         this.statusRepository = statusRepository;
         this.mediaUserRepository = mediaUserRepository;
         this.mediaUserHistoryRepository = mediaUserHistoryRepository;
+        this.mediaUserMapper = mediaUserMapper;
     }
 
     @Transactional
@@ -94,5 +100,14 @@ public class MediaUserService {
         }
 
         return mediaUserRepository.save(mediaUser);
+    }
+
+    public List<MediaUserGetByMediaTypeResponse> getMediaUserByMediaType(
+            Long mediaTypeId,
+            Long userId
+    ) {
+        return mediaUserRepository.findByUserIdAndMedia_MediaType_Id(userId, mediaTypeId).stream()
+                .map(mediaUserMapper::toResponse)
+                .toList();
     }
 }

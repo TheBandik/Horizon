@@ -32,18 +32,44 @@ import {useTranslation} from "react-i18next";
 import React, {type ComponentType, useEffect, useMemo, useState} from "react";
 import {type MediaResponse, searchMedia} from "../api/media.ts";
 import {MediaEditModal} from "../components/MediaEditModal";
-import {createMediaUser, type DatePrecision, type MediaUserCreateRequest} from "../api/mediaUser.ts";
+import {
+    createMediaUser,
+    type DatePrecision, getMyMediaByType,
+    type MediaUserCreateRequest,
+    type MediaUserItem
+} from "../api/mediaUser.ts";
 
 import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import {arrayMove, SortableContext, useSortable, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import {CSS} from "@dnd-kit/utilities";
 import {logout} from "../api/auth/logout.ts";
 import {useNavigate} from "react-router-dom";
+import { getMediaTypes, type MediaTypeDto } from "../api/mediaTypes.ts";
 
 type PartialDateValue = { day: string; month: string; year: string };
 
 function pad2(v: string) {
     return v.padStart(2, "0").slice(0, 2);
+}
+
+function iconByMediaTypeName(name: string) {
+    const key = name.trim().toLowerCase();
+    switch (key) {
+        case "game":
+            return IconDeviceGamepad2;
+        case "movie":
+            return IconMovie;
+        case "series":
+            return IconDeviceTv;
+        case "book":
+            return IconBook2;
+        case "comics":
+            return IconBat;
+        case "theatre":
+            return IconMasksTheater;
+        default:
+            return IconDeviceTv;
+    }
 }
 
 function buildEventDatePayload(date: PartialDateValue): {
@@ -170,7 +196,7 @@ function SortableNavLink({
 }
 
 export function UserProfile() {
-    const [active, setActive] = useState("games");
+    const [active, setActive] = useState<string>("");
     const isMobile = useMediaQuery("(max-width: 600px)");
 
     const [query, setQuery] = useState("");
@@ -291,47 +317,43 @@ export function UserProfile() {
     const {t} = useTranslation();
 
     /** ===== NAV state with persistence ===== */
-    const [mediaTypes, setMediaTypes] = useState<MediaNavItem[]>(() => {
-        const defaults: MediaNavItem[] = [
-            {id: "games", link: "#", label: t("games"), icon: IconDeviceGamepad2},
-            {id: "movies", link: "#", label: t("movies"), icon: IconMovie},
-            {id: "theatre", link: "#", label: t("theatre"), icon: IconMasksTheater},
-            {id: "books", link: "#", label: t("books"), icon: IconBook2},
-            {id: "series", link: "#", label: t("series") + " (soon)", icon: IconDeviceTv, disabled: true},
-            {id: "comics", link: "#", label: t("comics") + " (soon)", icon: IconBat, disabled: true},
-        ];
-
-        try {
-            const raw = localStorage.getItem(NAV_ORDER_STORAGE_KEY);
-            const saved = raw ? (JSON.parse(raw) as string[]) : null;
-            return applySavedOrder(defaults, saved);
-        } catch {
-            return defaults;
-        }
-    });
+    const [mediaTypes, setMediaTypes] = useState<MediaNavItem[]>([]);
 
     useEffect(() => {
-        setMediaTypes((prev) =>
-            prev.map((x) => {
-                switch (x.id) {
-                    case "games":
-                        return {...x, label: t("games")};
-                    case "movies":
-                        return {...x, label: t("movies")};
-                    case "theatre":
-                        return {...x, label: t("theatre")};
-                    case "books":
-                        return {...x, label: t("books")};
-                    case "series":
-                        return {...x, label: t("series") + " (soon)"};
-                    case "comics":
-                        return {...x, label: t("comics") + " (soon)"};
-                    default:
-                        return x;
+        const controller = new AbortController();
+
+        (async () => {
+            try {
+                const list: MediaTypeDto[] = await getMediaTypes({ signal: controller.signal });
+
+                const defaults: MediaNavItem[] = list.map((mt) => ({
+                    id: String(mt.id),
+                    link: "#",
+                    label: mt.name,
+                    icon: iconByMediaTypeName(mt.name),
+                    disabled: false,
+                }));
+
+                let ordered = defaults;
+                try {
+                    const raw = localStorage.getItem(NAV_ORDER_STORAGE_KEY);
+                    const saved = raw ? (JSON.parse(raw) as string[]) : null;
+                    ordered = applySavedOrder(defaults, saved);
+                } catch {
+                    // ignore
                 }
-            }),
-        );
-    }, [t]);
+
+                setMediaTypes(ordered);
+
+                setActive((prev) => prev || (ordered[0]?.id ?? ""));
+            } catch (e) {
+                if (e instanceof DOMException && e.name === "AbortError") return;
+                setMediaTypes([]);
+            }
+        })();
+
+        return () => controller.abort();
+    }, []);
 
     useEffect(() => {
         try {
@@ -373,28 +395,61 @@ export function UserProfile() {
         });
     };
 
-    // Тестовые данные таблицы
-    const elements = [
-        {
-            title: "Game",
-            original_title: "Game",
-            release_date: "12.04.2023",
-            franchise: "Franchise",
-            user_status: "Status",
-            rating: 5,
-        },
-    ];
+    const [itemsByType, setItemsByType] = useState<Record<number, MediaUserItem[]>>({});
+    const [tableItems, setTableItems] = useState<MediaUserItem[]>([]);
 
-    const rows = elements.map((element) => (
-        <Table.Tr key={element.title}>
-            <Table.Td>{element.title}</Table.Td>
-            <Table.Td>{element.original_title}</Table.Td>
-            <Table.Td>{element.release_date}</Table.Td>
-            <Table.Td>{element.franchise}</Table.Td>
-            <Table.Td>{element.user_status}</Table.Td>
-            <Table.Td>{element.rating}</Table.Td>
+    const [, setTableLoading] = useState(false);
+    const [, setTableError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!active) return;
+
+        const mediaTypeId = Number(active);
+        if (Number.isNaN(mediaTypeId)) return;
+
+        const cached = itemsByType[mediaTypeId];
+        if (cached) {
+            setTableItems(cached);
+            return;
+        }
+
+        const controller = new AbortController();
+
+        (async () => {
+            try {
+                setTableLoading(true);
+                setTableError(null);
+
+                const data = await getMyMediaByType({ mediaTypeId, signal: controller.signal });
+
+                setItemsByType((prev) => ({ ...prev, [mediaTypeId]: data }));
+                setTableItems(data);
+            } catch (e) {
+                if (e instanceof DOMException && e.name === "AbortError") return;
+
+                const message = e instanceof Error ? e.message : "Не удалось загрузить данные";
+                setTableError(message);
+                setTableItems([]);
+            } finally {
+                setTableLoading(false);
+            }
+        })();
+
+        return () => controller.abort();
+// eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [active]);
+
+    const rows = tableItems.map((x) => (
+        <Table.Tr key={x.id}>
+            <Table.Td>{x.media.title ?? "—"}</Table.Td>
+            <Table.Td>{x.media.originalTitle ?? "—"}</Table.Td>
+            <Table.Td>{x.media.releaseDate ?? "—"}</Table.Td>
+            <Table.Td>{"—"}</Table.Td>
+            <Table.Td>{x.status.name}</Table.Td>
+            <Table.Td>{x.rating ?? "—"}</Table.Td>
         </Table.Tr>
     ));
+
 
     return (
         <>

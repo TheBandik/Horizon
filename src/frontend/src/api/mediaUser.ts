@@ -20,6 +20,27 @@ export type MediaUserResponse = {
     precision: DatePrecision | null;
 };
 
+export type MediaUserItem = {
+    id: number;
+    media: {
+        id: number;
+        title: string | null;
+        originalTitle: string | null;
+        poster: string | null;
+        releaseDate: string | null;
+        mediaType: {
+            id: number;
+            name: string;
+        };
+    };
+    status: {
+        id: number;
+        name: string;
+    };
+    rating: number | null;
+    lastEventDate: string | null;
+};
+
 export async function createMediaUser(params: {
     body: MediaUserCreateRequest;
     signal?: AbortSignal;
@@ -30,4 +51,19 @@ export async function createMediaUser(params: {
         body: JSON.stringify(params.body),
         signal: params.signal,
     });
+}
+
+export async function getMyMediaByType(params: {
+    mediaTypeId: number;
+    signal?: AbortSignal;
+}): Promise<MediaUserItem[]> {
+    const { mediaTypeId, signal } = params;
+
+    return apiFetch(
+        `/api/media-user?mediaTypeId=${encodeURIComponent(mediaTypeId)}`,
+        {
+            method: "GET",
+            signal,
+        }
+    );
 }

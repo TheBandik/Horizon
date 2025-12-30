@@ -2,11 +2,13 @@ package thebandik.horizon.backend.user.mediaUser;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import thebandik.horizon.backend.common.CurrentUser;
 import thebandik.horizon.backend.user.mediaUser.dto.MediaUserCreateRequest;
+import thebandik.horizon.backend.user.mediaUser.dto.MediaUserGetByMediaTypeResponse;
 import thebandik.horizon.backend.user.mediaUser.dto.MediaUserResponse;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/media-user")
@@ -14,7 +16,9 @@ public class MediaUserController {
 
     private final MediaUserService mediaUserService;
 
-    public MediaUserController(MediaUserService mediaUserService) {
+    public MediaUserController(
+            MediaUserService mediaUserService
+    ) {
         this.mediaUserService = mediaUserService;
     }
 
@@ -37,5 +41,13 @@ public class MediaUserController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping
+    public List<MediaUserGetByMediaTypeResponse> getMediaUserByMediaType(
+            @RequestParam Long mediaTypeId,
+            @CurrentUser Long userId
+    ) {
+        return mediaUserService.getMediaUserByMediaType(mediaTypeId, userId);
     }
 }
