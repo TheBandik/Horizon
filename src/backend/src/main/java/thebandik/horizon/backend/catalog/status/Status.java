@@ -21,4 +21,9 @@ public class Status {
     @Column(nullable = false, unique = true)
     String name;
 
+    @Column(nullable = false, unique = true)
+    String code;
+
+    @Column(nullable = false)
+    String scope;
 }

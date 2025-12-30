@@ -2,6 +2,7 @@ package thebandik.horizon.backend.catalog.status;
 
 import org.springframework.stereotype.Service;
 import thebandik.horizon.backend.catalog.status.dto.StatusRequest;
+import thebandik.horizon.backend.catalog.status.dto.StatusResponse;
 import thebandik.horizon.backend.common.errors.AlreadyExistsException;
 import thebandik.horizon.backend.common.errors.NotFoundException;
 
@@ -11,12 +12,17 @@ import java.util.List;
 public class StatusService {
 
     public final StatusRepository statusRepository;
+    private final StatusMapper statusMapper;
 
-    public StatusService(StatusRepository statusRepository) {
+    public StatusService(
+            StatusRepository statusRepository,
+            StatusMapper statusMapper
+    ) {
         this.statusRepository = statusRepository;
+        this.statusMapper = statusMapper;
     }
 
-    public Status create(StatusRequest request) {
+    public StatusResponse create(StatusRequest request) {
         String name = request.name();
 
         if (statusRepository.existsByName(name)) {
@@ -26,29 +32,24 @@ public class StatusService {
         Status status = new Status();
 
         status.setName(name);
+        status.setCode(request.code());
+        status.setScope(request.scope());
 
-        return statusRepository.save(status);
+        return statusMapper.toResponse(statusRepository.save(status));
     }
 
-    public List<Status> getAll() {
-        return statusRepository.findAll();
+    public List<StatusResponse> getAll() {
+        return statusRepository.findAll().stream()
+                .map(statusMapper::toResponse)
+                .toList();
     }
 
-    public Status getById(Long id) {
-        return statusRepository.findById(id).orElseThrow(() ->
-                new NotFoundException("STATUS", "Status", id.toString())
-        );
-    }
-
-    public Status update(Long id, StatusRequest request) {
-
+    public StatusResponse getById(Long id) {
         Status status = statusRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("STATUS", "Status", id.toString())
         );
 
-        status.setName(request.name());
-
-        return statusRepository.save(status);
+        return statusMapper.toResponse(status);
     }
 
     public void delete(Long id) {

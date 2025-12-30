@@ -1,6 +1,8 @@
 package thebandik.horizon.backend.catalog.status.dto;
 
 public record StatusRequest(
-        String name
+        String name,
+        String code,
+        String scope
 ) {
 }

@@ -1,11 +1,14 @@
-import {apiFetch} from "./http.ts";
+import { apiFetch } from "./http.ts";
 
-export type StatusResponse = {
+export type StatusScope = "ALL" | "MOVIE" | "BOOK" | "GAME";
+
+export type StatusDto = {
     id: number;
-    code: string;
     name: string;
+    code: string;
+    scope: StatusScope;
 };
 
-export async function getStatuses(params?: { signal?: AbortSignal }): Promise<StatusResponse[]> {
-    return apiFetch<StatusResponse[]>('/api/status', {signal: params?.signal});
+export async function getStatuses(params?: { signal?: AbortSignal }): Promise<StatusDto[]> {
+    return apiFetch("/api/status", { method: "GET", signal: params?.signal });
 }

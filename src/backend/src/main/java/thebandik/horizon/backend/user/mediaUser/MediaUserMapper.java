@@ -31,7 +31,9 @@ public class MediaUserMapper {
                 ),
                 new StatusResponse(
                         status.getId(),
-                        status.getName()
+                        status.getName(),
+                        status.getCode(),
+                        status.getScope()
                 ),
                 mediaUser.getRating(),
                 mediaUser.getLastEventDate()
