@@ -1,13 +1,14 @@
 package thebandik.horizon.backend.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.person.Person;
 import thebandik.horizon.backend.catalog.person.PersonRepository;
 import thebandik.horizon.backend.catalog.person.dto.PersonRequest;
@@ -17,7 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class PersonControllerTest {
+@Transactional
+class PersonControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -27,11 +29,6 @@ class PersonControllerTest {
 
     @Autowired
     private PersonRepository personRepository;
-
-    @BeforeEach
-    void setUp() {
-        personRepository.deleteAll();
-    }
 
     @Test
     void create_shouldReturn201_whenPersonIsValid() throws Exception {

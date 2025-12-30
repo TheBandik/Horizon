@@ -1,13 +1,14 @@
 package thebandik.horizon.backend.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.role.Role;
 import thebandik.horizon.backend.catalog.role.RoleRepository;
 import thebandik.horizon.backend.catalog.role.dto.RoleRequest;
@@ -17,7 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class RoleControllerTest {
+@Transactional
+class RoleControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -27,11 +29,6 @@ class RoleControllerTest {
 
     @Autowired
     private RoleRepository roleRepository;
-
-    @BeforeEach
-    void setUp() {
-        roleRepository.deleteAll();
-    }
 
     @Test
     void create_shouldReturn201_whenRoleIsValid() throws Exception {

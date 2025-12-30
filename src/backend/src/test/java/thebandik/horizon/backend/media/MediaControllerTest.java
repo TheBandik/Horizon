@@ -1,7 +1,7 @@
 package thebandik.horizon.backend.media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -9,11 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeRepository;
 import thebandik.horizon.backend.media.dto.MediaRequest;
-import thebandik.horizon.backend.media.mediaGenre.MediaGenreRepository;
-import thebandik.horizon.backend.media.mediaSeries.MediaSeriesRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class MediaControllerTest {
+@Transactional
+class MediaControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,23 +37,9 @@ class MediaControllerTest {
     @Autowired
     private MediaTypeRepository mediaTypeRepository;
 
-    @Autowired
-    private MediaSeriesRepository mediaSeriesRepository;
-
-    @Autowired
-    private MediaGenreRepository mediaGenreRepository;
-
-    @BeforeEach
-    void setUp() {
-        mediaGenreRepository.deleteAll();
-        mediaSeriesRepository.deleteAll();
-        mediaRepository.deleteAll();
-        mediaTypeRepository.deleteAll();
-    }
-
     @Test
     void create_shouldReturn201_whenMediaIsValid() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         MediaRequest request = new MediaRequest(
                 "Title",
@@ -92,7 +78,7 @@ class MediaControllerTest {
 
     @Test
     void getAll_shouldReturn200_whenMediaExist() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         mediaRepository.save(new Media(
                 null,
@@ -123,7 +109,7 @@ class MediaControllerTest {
 
     @Test
     void getById_shouldReturn200_whenMediaExists() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         Media saved = mediaRepository.save(new Media(
                 null,
@@ -143,7 +129,7 @@ class MediaControllerTest {
 
     @Test
     void update_shouldReturn200_whenMediaIsValid() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         Media saved = mediaRepository.save(new Media(
                 null,
@@ -171,7 +157,7 @@ class MediaControllerTest {
 
     @Test
     void delete_shouldReturn204_whenMediaExists() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         Media saved = mediaRepository.save(new Media(
                 null,
@@ -198,7 +184,7 @@ class MediaControllerTest {
 
     @Test
     void update_shouldReturn404_whenMediaNotFound() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         MediaRequest request = new MediaRequest(
                 "New Title",

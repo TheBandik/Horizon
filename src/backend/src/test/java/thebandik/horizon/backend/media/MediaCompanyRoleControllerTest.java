@@ -1,20 +1,20 @@
 package thebandik.horizon.backend.media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.company.Company;
 import thebandik.horizon.backend.catalog.company.CompanyRepository;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeRepository;
 import thebandik.horizon.backend.catalog.role.Role;
 import thebandik.horizon.backend.catalog.role.RoleRepository;
-import thebandik.horizon.backend.media.mediaCompanyRole.MediaCompanyRoleRepository;
 import thebandik.horizon.backend.media.mediaCompanyRole.dto.MediaCompanyRoleRequest;
 
 import java.time.LocalDate;
@@ -25,7 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-public class MediaCompanyRoleControllerTest {
+@Transactional
+public class MediaCompanyRoleControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,21 +46,9 @@ public class MediaCompanyRoleControllerTest {
     @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired
-    private MediaCompanyRoleRepository mediaCompanyRoleRepository;
-
-    @BeforeEach
-    void setUp() {
-        mediaCompanyRoleRepository.deleteAll();
-        mediaRepository.deleteAll();
-        companyRepository.deleteAll();
-        roleRepository.deleteAll();
-        mediaTypeRepository.deleteAll();
-    }
-
     @Test
     void create_shouldReturn201_whenMediaCompanyRoleIsValid() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
         Company company = companyRepository.save(new Company(null, "WB"));
         Role role = roleRepository.save(new Role(null, "Dev"));
         Media media = mediaRepository.save(new Media(

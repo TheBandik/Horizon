@@ -1,13 +1,14 @@
 package thebandik.horizon.backend.media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeRepository;
 import thebandik.horizon.backend.catalog.series.Series;
@@ -25,7 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-public class MediaSeriesControllerTest {
+@Transactional
+public class MediaSeriesControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,17 +47,9 @@ public class MediaSeriesControllerTest {
     @Autowired
     private MediaSeriesRepository mediaSeriesRepository;
 
-    @BeforeEach
-    void setUp() {
-        mediaSeriesRepository.deleteAll();
-        mediaRepository.deleteAll();
-        seriesRepository.deleteAll();
-        mediaTypeRepository.deleteAll();
-    }
-
     @Test
     void create_shouldReturn201_whenMediaSeriesIsValid() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
         Series series = seriesRepository.save(new Series(null, "Star Wars", null));
         Media media = mediaRepository.save(new Media(
                 null,
@@ -81,7 +75,7 @@ public class MediaSeriesControllerTest {
 
     @Test
     void getSeriesByMediaId_shouldReturn200_whenMediaSeriesExists() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
         Series seriesFirst = seriesRepository.save(new Series(null, "Star Wars", null));
         Series seriesSecond = seriesRepository.save(new Series(null, "Halo", null));
         Media media = mediaRepository.save(new Media(

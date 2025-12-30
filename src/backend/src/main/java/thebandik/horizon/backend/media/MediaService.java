@@ -1,5 +1,6 @@
 package thebandik.horizon.backend.media;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ public class MediaService {
     private final MediaRepository mediaRepository;
     private final MediaTypeService mediaTypeService;
     private final S3StorageService s3;
+    @Value("${s3.enabled}")
+    private Boolean enabled;
 
     private MediaService(MediaRepository mediaRepository, MediaTypeService mediaTypeService, S3StorageService s3) {
         this.mediaRepository = mediaRepository;
@@ -33,7 +36,9 @@ public class MediaService {
         media.setTitle(request.title());
         media.setOriginalTitle(request.originalTitle());
 
-        if (poster != null && !poster.isEmpty()) {
+        if (!enabled) {
+            media.setPoster("https://test");
+        } else if (poster != null && !poster.isEmpty()) {
             String key = s3.upload(poster);
             media.setPoster(s3.getPublicUrl(key));
         }

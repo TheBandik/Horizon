@@ -1,6 +1,7 @@
 package thebandik.horizon.backend.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,17 +9,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.series.Series;
 import thebandik.horizon.backend.catalog.series.SeriesRepository;
 import thebandik.horizon.backend.catalog.series.dto.SeriesRequest;
-import thebandik.horizon.backend.media.mediaSeries.MediaSeriesRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class SeriesControllerTest {
+@Transactional
+class SeriesControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,16 +31,11 @@ class SeriesControllerTest {
     @Autowired
     private SeriesRepository seriesRepository;
 
-    @Autowired
-    private MediaSeriesRepository mediaSeriesRepository;
-
     private Series parent;
 
     @BeforeEach
     void setUp() {
-        mediaSeriesRepository.deleteAll();
-        seriesRepository.deleteAll();
-        parent = seriesRepository.save(new Series(null, "Parent", null));
+        this.parent = seriesRepository.save(new Series(null, "Parent", null));
     }
 
     @Test

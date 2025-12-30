@@ -1,13 +1,14 @@
 package thebandik.horizon.backend.media;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.genre.Genre;
 import thebandik.horizon.backend.catalog.genre.GenreRepository;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
@@ -25,7 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-public class MediaGenreControllerTest {
+@Transactional
+public class MediaGenreControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,17 +47,9 @@ public class MediaGenreControllerTest {
     @Autowired
     private MediaGenreRepository mediaGenreRepository;
 
-    @BeforeEach
-    void setUp() {
-        mediaGenreRepository.deleteAll();
-        mediaRepository.deleteAll();
-        genreRepository.deleteAll();
-        mediaTypeRepository.deleteAll();
-    }
-
     @Test
     void create_shouldReturn201_whenMediaGenreIsValid() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
         Genre genre = genreRepository.save(new Genre(null, "Action"));
         Media media = mediaRepository.save(new Media(
                 null,
@@ -81,7 +75,7 @@ public class MediaGenreControllerTest {
 
     @Test
     void getGenreByMediaId_shouldReturn200_whenMediaGenreExists() throws Exception {
-        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity mediaType = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
         Genre genreFirst = genreRepository.save(new Genre(null, "Action"));
         Genre genreSecond = genreRepository.save(new Genre(null, "RPG"));
         Media media = mediaRepository.save(new Media(

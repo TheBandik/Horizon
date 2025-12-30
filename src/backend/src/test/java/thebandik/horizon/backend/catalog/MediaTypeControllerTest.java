@@ -1,24 +1,25 @@
 package thebandik.horizon.backend.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeEntity;
 import thebandik.horizon.backend.catalog.mediaType.MediaTypeRepository;
 import thebandik.horizon.backend.catalog.mediaType.dto.MediaTypeRequest;
-import thebandik.horizon.backend.media.MediaRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class MediaTypeControllerTest {
+@Transactional
+class MediaTypeControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,18 +30,9 @@ class MediaTypeControllerTest {
     @Autowired
     private MediaTypeRepository mediaTypeRepository;
 
-    @Autowired
-    private MediaRepository mediaRepository;
-
-    @BeforeEach
-    void setUp() {
-        mediaRepository.deleteAll();
-        mediaTypeRepository.deleteAll();
-    }
-
     @Test
     void create_shouldReturn201_whenMediaTypeIsValid() throws Exception {
-        MediaTypeRequest request = new MediaTypeRequest("Movie");
+        MediaTypeRequest request = new MediaTypeRequest("Test");
 
         mockMvc.perform(post("/api/media-types")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -50,8 +42,8 @@ class MediaTypeControllerTest {
 
     @Test
     void getAll_shouldReturn200_whenMediaTypesExist() throws Exception {
-        mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
-        mediaTypeRepository.save(new MediaTypeEntity(null, "Series"));
+        mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
+        mediaTypeRepository.save(new MediaTypeEntity(null, "Test2"));
 
         mockMvc.perform(get("/api/media-types")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -60,7 +52,7 @@ class MediaTypeControllerTest {
 
     @Test
     void getById_shouldReturn200_whenMediaTypeExists() throws Exception {
-        MediaTypeEntity saved = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity saved = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         mockMvc.perform(get("/api/media-types/{id}", saved.getId())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -69,7 +61,7 @@ class MediaTypeControllerTest {
 
     @Test
     void update_shouldReturn200_whenMediaTypeIsValid() throws Exception {
-        MediaTypeEntity saved = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity saved = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         MediaTypeRequest request = new MediaTypeRequest("Film");
 
@@ -81,7 +73,7 @@ class MediaTypeControllerTest {
 
     @Test
     void delete_shouldReturn204_whenMediaTypeExists() throws Exception {
-        MediaTypeEntity saved = mediaTypeRepository.save(new MediaTypeEntity(null, "Movie"));
+        MediaTypeEntity saved = mediaTypeRepository.save(new MediaTypeEntity(null, "Test"));
 
         mockMvc.perform(delete("/api/media-types/{id}", saved.getId())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -90,8 +82,8 @@ class MediaTypeControllerTest {
 
     @Test
     void create_shouldReturn409_whenNameAlreadyExists() throws Exception {
-        MediaTypeRequest first = new MediaTypeRequest("Movie");
-        MediaTypeRequest second = new MediaTypeRequest("Movie");
+        MediaTypeRequest first = new MediaTypeRequest("Test");
+        MediaTypeRequest second = new MediaTypeRequest("Test");
 
         // Первая — ок
         mockMvc.perform(post("/api/media-types")

@@ -21,9 +21,16 @@ public class SmartCaptchaClient {
     @Value("${yandex.smartcaptcha.bypass-token}")
     private String bypassToken;
 
+    @Value("${yandex.smartcaptcha.enabled}")
+    private Boolean enabled;
+
     public boolean verify(String token, String userIp) {
         if (bypassToken.equals(token)) {
             return true; // dev
+        }
+
+        if (!enabled) {
+            return true; // test
         }
 
         if (token == null || token.isBlank()) {

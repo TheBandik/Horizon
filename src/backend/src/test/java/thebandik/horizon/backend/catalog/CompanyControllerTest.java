@@ -1,24 +1,25 @@
 package thebandik.horizon.backend.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.company.Company;
 import thebandik.horizon.backend.catalog.company.CompanyRepository;
 import thebandik.horizon.backend.catalog.company.dto.CompanyRequest;
-import thebandik.horizon.backend.media.mediaCompanyRole.MediaCompanyRoleRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class CompanyControllerTest {
+@Transactional
+class CompanyControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -28,15 +29,6 @@ class CompanyControllerTest {
 
     @Autowired
     private CompanyRepository companyRepository;
-
-    @Autowired
-    private MediaCompanyRoleRepository mediaCompanyRoleRepository;
-
-    @BeforeEach
-    void setUp() {
-        mediaCompanyRoleRepository.deleteAll();
-        companyRepository.deleteAll();
-    }
 
     @Test
     void create_shouldReturn201_whenCompanyIsValid() throws Exception {

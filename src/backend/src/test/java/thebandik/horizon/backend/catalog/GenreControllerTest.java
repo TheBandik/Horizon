@@ -1,24 +1,25 @@
 package thebandik.horizon.backend.catalog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import thebandik.horizon.backend.BaseIntegrationTest;
 import thebandik.horizon.backend.catalog.genre.Genre;
 import thebandik.horizon.backend.catalog.genre.GenreRepository;
 import thebandik.horizon.backend.catalog.genre.dto.GenreRequest;
-import thebandik.horizon.backend.media.mediaGenre.MediaGenreRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class GenreControllerTest {
+@Transactional
+class GenreControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -28,15 +29,6 @@ class GenreControllerTest {
 
     @Autowired
     private GenreRepository genreRepository;
-
-    @Autowired
-    private MediaGenreRepository mediaGenreRepository;
-
-    @BeforeEach
-    void setUp() {
-        mediaGenreRepository.deleteAll();
-        genreRepository.deleteAll();
-    }
 
     @Test
     void create_shouldReturn201_whenGenreIsValid() throws Exception {
