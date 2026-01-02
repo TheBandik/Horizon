@@ -1,5 +1,5 @@
 import {
-    IconLogout,
+    IconLogout, IconPlus,
 } from "@tabler/icons-react";
 import {
     ActionIcon,
@@ -363,7 +363,17 @@ export function UserProfile() {
                                 </Combobox.Options>
                             </Combobox.Dropdown>
                         </Combobox>
+                        <ActionIcon
+                            size={40}
+                            radius="xl"
+                            variant="filled"
+                            ml={"xs"}
+                            onClick={() => navigate("/create")}
+                        >
+                            <IconPlus size={18} stroke={1.5}/>
+                        </ActionIcon>
                     </Flex>
+
 
                     <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter} classNames={classes} />
 

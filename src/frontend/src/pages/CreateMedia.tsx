@@ -23,13 +23,14 @@ import { getMediaTypes, type MediaTypeDto } from "../api/mediaTypes.ts";
 import { getGenres, type GenreDto } from "../api/genres.ts";
 import { getSeries, type SeriesDto } from "../api/series.ts";
 import { createMedia } from "../api/media.ts";
+import {useNavigate} from "react-router-dom";
 
 type Option = { value: string; label: string };
 
 export function CreateMedia() {
     const isMobile = useMediaQuery("(max-width: 600px)");
+    const navigate = useNavigate();
 
-    // form state
     const [title, setTitle] = useState("");
     const [originalTitle, setOriginalTitle] = useState("");
     const [releaseDate, setReleaseDate] = useState<string | null>(null);
@@ -149,6 +150,7 @@ export function CreateMedia() {
             setGenresState([]);
             setSeriesState([]);
             setPoster(null);
+            navigate("/user");
         } catch (e) {
             const message = e instanceof Error ? e.message : "Create failed";
             console.error(e);
@@ -166,6 +168,7 @@ export function CreateMedia() {
         setGenresState([]);
         setSeriesState([]);
         setPoster(null);
+        navigate("/user");
     }
 
     const formDisabled = loading || !!error || submitLoading;
