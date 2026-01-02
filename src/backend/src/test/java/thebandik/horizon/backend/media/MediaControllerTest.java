@@ -16,6 +16,7 @@ import thebandik.horizon.backend.media.dto.MediaRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -45,7 +46,9 @@ class MediaControllerTest extends BaseIntegrationTest {
                 "Title",
                 "Original Title",
                 LocalDate.parse("2025-10-10"),
-                mediaType.getId()
+                mediaType.getId(),
+                List.of(),
+                List.of()
         );
 
         MockMultipartFile dataPart = new MockMultipartFile(
@@ -146,7 +149,9 @@ class MediaControllerTest extends BaseIntegrationTest {
                 "New Title",
                 "New Original Title",
                 LocalDate.parse("2024-10-10"),
-                mediaType.getId()
+                mediaType.getId(),
+                List.of(),
+                List.of()
         );
 
         mockMvc.perform(put("/api/media/{id}", saved.getId())
@@ -190,7 +195,9 @@ class MediaControllerTest extends BaseIntegrationTest {
                 "New Title",
                 "New Original Title",
                 LocalDate.parse("2024-10-10"),
-                mediaType.getId()
+                mediaType.getId(),
+                List.of(),
+                List.of()
         );
 
         mockMvc.perform(put("/api/media/{id}", 9999L)

@@ -24,26 +24,12 @@ public class MediaController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MediaResponse> create(
+    @ResponseStatus(HttpStatus.CREATED)
+    public void create(
             @RequestPart("data") MediaRequest request,
             @RequestPart(value = "poster", required = false) MultipartFile poster
     ) {
-        Media media = mediaService.create(request, poster);
-
-        MediaResponse response = new MediaResponse(
-                media.getId(),
-                media.getTitle(),
-                media.getOriginalTitle(),
-                media.getPoster(),
-                media.getReleaseDate(),
-
-                new MediaTypeResponse(
-                        media.getMediaType().getId(),
-                        media.getMediaType().getName()
-                )
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        mediaService.create(request, poster);
     }
 
     @GetMapping
