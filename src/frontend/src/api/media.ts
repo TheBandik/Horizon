@@ -1,4 +1,4 @@
-import {apiFetch} from "./http.ts";
+import { apiFetch } from "./http.ts";
 
 export type MediaTypeResponse = {
     id: number;
@@ -23,8 +23,10 @@ export type PageResponse<T> = {
     totalPages: number;
 };
 
+// ===== Search =====
 export async function searchMedia(params: {
-    q: string;
+    query?: string;
+    q?: string;
     page?: number;
     size?: number;
     signal?: AbortSignal;
@@ -32,14 +34,49 @@ export async function searchMedia(params: {
     const page = params.page ?? 0;
     const size = params.size ?? 10;
 
+    const query = (params.query ?? params.q ?? "").trim();
+
     const qs = new URLSearchParams({
-        query: params.q,
+        query,
         page: String(page),
         size: String(size),
     });
 
     return apiFetch<PageResponse<MediaResponse>>(`/api/media/search?${qs.toString()}`, {
-        method: 'GET',
+        method: "GET",
+        signal: params.signal,
+    });
+}
+
+// ===== Create (JSON + poster) =====
+export type MediaCreateRequest = {
+    title: string;
+    originalTitle: string | null;
+    releaseDate: string;
+    mediaTypeId: number;
+    series: number[];
+    genres: number[];
+};
+
+export async function createMedia(params: {
+    request: MediaCreateRequest;
+    poster?: File | null;
+    signal?: AbortSignal;
+}): Promise<void> {
+
+    console.log(params.request);
+
+    const form = new FormData();
+
+    form.append("data", new Blob([JSON.stringify(params.request)], { type: "application/json" }));
+
+    if (params.poster) {
+        form.append("poster", params.poster);
+    }
+
+    return apiFetch<void>("/api/media", {
+        method: "POST",
+        body: form,
         signal: params.signal,
     });
 }
