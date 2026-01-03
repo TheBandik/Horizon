@@ -61,7 +61,7 @@ export function UserProfile() {
 
     const {mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName} = useMediaTypesNav();
 
-    const {tableItems} = useMediaUserTable(active);
+    const { tableItems, refetch, invalidateActive } = useMediaUserTable(active);
 
     const {statuses} = useStatuses();
 
@@ -136,7 +136,23 @@ export function UserProfile() {
         return !statusId;
     }, [modalItem, statusId]);
 
+    const resetSearch = useCallback(() => {
+        setQuery("");
+        setResults([]);
+        setError(null);
+        setLoading(false);
+
+        combobox.closeDropdown();
+        combobox.resetSelectedOption();
+    }, [combobox]);
+
+    const handleCloseModal = useCallback(() => {
+        closeModal();
+        resetSearch();
+    }, [closeModal, resetSearch]);
+
     const handleSubmit = async () => {
+
         if (!modalItem) return;
 
         if (!statusId) {
@@ -156,7 +172,9 @@ export function UserProfile() {
 
         try {
             await createMediaUser({body});
-            closeModal();
+            invalidateActive();
+            await refetch();
+            handleCloseModal();
         } catch (e) {
             const message = e instanceof Error ? e.message : "Неизвестная ошибка";
             alert(message);
@@ -228,7 +246,7 @@ export function UserProfile() {
         <>
             <MediaEditModal
                 opened={modalOpened}
-                onClose={closeModal}
+                onClose={handleCloseModal}
                 item={modalItem}
                 rating={rating}
                 onRatingChange={setRating}
@@ -378,8 +396,12 @@ export function UserProfile() {
                     </Flex>
 
 
-                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter}
-                                      classNames={classes}/>
+                    <SegmentedControl
+                        data={segmentedData}
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        classNames={classes}
+                    />
 
                     <Table.ScrollContainer maxHeight={"68vh"} minWidth={"75vw"}>
                         <Table striped highlightOnHover withRowBorders={false} horizontalSpacing={"lg"}>
