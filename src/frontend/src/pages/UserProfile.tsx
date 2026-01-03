@@ -45,7 +45,6 @@ export function UserProfile() {
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 600px)");
 
-    // Search combobox
     const [query, setQuery] = useState("");
     const [debounced] = useDebouncedValue(query, 250);
     const [results, setResults] = useState<MediaResponse[]>([]);
@@ -440,11 +439,12 @@ export function UserProfile() {
                     <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter} classNames={classes} />
 
                     <MediaUserTable
-                        items={filteredTableItems as unknown as MediaUserTableItem[]}
+                        items={filteredTableItems}
                         onRowClick={openDetailsDrawer}
                         onDetailsClick={openDetailsDrawer}
                         onEditClick={openEditFromTable}
                     />
+
                 </Stack>
 
                 {!isMobile && (

@@ -1,34 +1,54 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getMyMediaByType, type MediaUserItem } from "../../../api/mediaUser";
+import type { MediaUserTableItem } from "../components/MediaUserTable";
+
+function mapToTableItem(x: MediaUserItem): MediaUserTableItem {
+    return {
+        id: x.id,
+        media: {
+            id: x.media.id,
+            title: x.media.title ?? null,
+            originalTitle: x.media.originalTitle ?? null,
+            releaseDate: x.media.releaseDate ?? null,
+            poster: (x.media as any).poster ?? null,
+        },
+        status: {
+            id: x.status.id,
+            name: x.status.name,
+        },
+        rating: x.rating ?? null,
+
+        lastEventDate: (x as any).lastEventDate ?? null,
+    };
+}
 
 export function useMediaUserTable(active: string) {
     const [itemsByType, setItemsByType] = useState<Record<number, MediaUserItem[]>>({});
-    const [tableItems, setTableItems] = useState<MediaUserItem[]>([]);
+    const [rawItems, setRawItems] = useState<MediaUserItem[]>([]);
     const [tableLoading, setTableLoading] = useState(false);
     const [tableError, setTableError] = useState<string | null>(null);
 
-    const loadByType = useCallback(
-        async (mediaTypeId: number, signal?: AbortSignal) => {
-            setTableLoading(true);
-            setTableError(null);
+    const tableItems = useMemo(() => rawItems.map(mapToTableItem), [rawItems]);
 
-            try {
-                const data = await getMyMediaByType({ mediaTypeId, signal });
+    const loadByType = useCallback(async (mediaTypeId: number, signal?: AbortSignal) => {
+        setTableLoading(true);
+        setTableError(null);
 
-                setItemsByType((prev) => ({ ...prev, [mediaTypeId]: data }));
-                setTableItems(data);
-            } catch (e) {
-                if (e instanceof DOMException && e.name === "AbortError") return;
+        try {
+            const data = await getMyMediaByType({ mediaTypeId, signal });
 
-                const message = e instanceof Error ? e.message : "Не удалось загрузить данные";
-                setTableError(message);
-                setTableItems([]);
-            } finally {
-                setTableLoading(false);
-            }
-        },
-        [],
-    );
+            setItemsByType((prev) => ({ ...prev, [mediaTypeId]: data }));
+            setRawItems(data);
+        } catch (e) {
+            if (e instanceof DOMException && e.name === "AbortError") return;
+
+            const message = e instanceof Error ? e.message : "Не удалось загрузить данные";
+            setTableError(message);
+            setRawItems([]);
+        } finally {
+            setTableLoading(false);
+        }
+    }, []);
 
     const refetch = useCallback(
         async (opts?: { skipCache?: boolean }) => {
@@ -69,7 +89,7 @@ export function useMediaUserTable(active: string) {
 
         const cached = itemsByType[mediaTypeId];
         if (cached) {
-            setTableItems(cached);
+            setRawItems(cached);
             return;
         }
 
@@ -84,9 +104,8 @@ export function useMediaUserTable(active: string) {
         tableLoading,
         tableError,
 
-        setItemsByType,
         itemsByType,
-        setTableItems,
+        setItemsByType,
 
         refetch,
         invalidateActive,
