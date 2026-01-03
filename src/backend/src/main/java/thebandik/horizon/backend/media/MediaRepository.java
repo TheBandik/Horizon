@@ -11,11 +11,13 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
             select m
             from Media m
             where
-                    lower(m.title) like lower(concat('%', :q, '%'))
-                    or lower(m.originalTitle) like lower(concat('%', :q, '%'))
+                    (lower(m.title) like lower(concat('%', :q, '%'))
+                    or lower(m.originalTitle) like lower(concat('%', :q, '%')))
+                    and m.mediaType.id = :mt
             """)
     Page<Media> searchMediaByTitle(
             @Param("q") String query,
-            Pageable pageable
+            Pageable pageable,
+            @Param("mt") Long mediaTypeId
     );
 }

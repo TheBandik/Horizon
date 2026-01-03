@@ -74,9 +74,11 @@ public class MediaController {
     public PageResponse<MediaResponse> search(
             @RequestParam String query,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam Long mediaTypeId
     ) {
-        Page<MediaResponse> searchResult = mediaService.searchMediaByTitle(query, page, size).map(MediaResponse::from);
+        Page<MediaResponse> searchResult = mediaService.searchMediaByTitle(query, page, size, mediaTypeId)
+                .map(MediaResponse::from);
         return PageResponse.from(searchResult);
     }
 

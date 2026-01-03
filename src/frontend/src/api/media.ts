@@ -25,21 +25,22 @@ export type PageResponse<T> = {
 
 // ===== Search =====
 export async function searchMedia(params: {
-    query?: string;
-    q?: string;
-    page?: number;
-    size?: number;
-    signal?: AbortSignal;
+    q: string;
+    page: number;
+    size: number;
+    mediaTypeId: string;
+    signal: AbortSignal
 }): Promise<PageResponse<MediaResponse>> {
     const page = params.page ?? 0;
     const size = params.size ?? 10;
 
-    const query = (params.query ?? params.q ?? "").trim();
+    const query = (params.q ?? "").trim();
 
     const qs = new URLSearchParams({
         query,
         page: String(page),
         size: String(size),
+        mediaTypeId: String(params.mediaTypeId)
     });
 
     return apiFetch<PageResponse<MediaResponse>>(`/api/media/search?${qs.toString()}`, {

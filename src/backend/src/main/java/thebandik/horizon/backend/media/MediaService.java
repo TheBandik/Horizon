@@ -129,7 +129,7 @@ public class MediaService {
         mediaRepository.deleteById(id);
     }
 
-    public Page<Media> searchMediaByTitle(String query, int page, int size) {
-        return mediaRepository.searchMediaByTitle(query, PageRequest.of(page, size));
+    public Page<Media> searchMediaByTitle(String query, int page, int size, Long mediaTypeId) {
+        return mediaRepository.searchMediaByTitle(query, PageRequest.of(page, size), mediaTypeId);
     }
 }

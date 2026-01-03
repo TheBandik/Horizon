@@ -1,6 +1,4 @@
-import {
-    IconLogout, IconPlus,
-} from "@tabler/icons-react";
+import {IconLogout, IconPlus,} from "@tabler/icons-react";
 import {
     ActionIcon,
     Combobox,
@@ -16,31 +14,31 @@ import {
 } from "@mantine/core";
 import classes from "./styles/UserProfile.module.css";
 import packageJson from "../../package.json";
-import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
-import { ThemeToggle } from "../components/ThemeToggle.tsx";
-import { useDebouncedValue, useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { useTranslation } from "react-i18next";
+import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
+import {ThemeToggle} from "../components/ThemeToggle.tsx";
+import {useDebouncedValue, useDisclosure, useMediaQuery} from "@mantine/hooks";
+import {useTranslation} from "react-i18next";
 import {useCallback, useEffect, useMemo, useState} from "react";
-import { type MediaResponse, searchMedia } from "../api/media.ts";
-import { MediaEditModal } from "../components/MediaEditModal";
-import { createMediaUser, type MediaUserCreateRequest } from "../api/mediaUser.ts";
-import { closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { logout } from "../api/auth/logout.ts";
-import { useNavigate } from "react-router-dom";
-import type { StatusDto } from "../api/statuses.ts";
+import {type MediaResponse, searchMedia} from "../api/media.ts";
+import {MediaEditModal} from "../components/MediaEditModal";
+import {createMediaUser, type MediaUserCreateRequest} from "../api/mediaUser.ts";
+import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {arrayMove, SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
+import {logout} from "../api/auth/logout.ts";
+import {useNavigate} from "react-router-dom";
+import type {StatusDto} from "../api/statuses.ts";
 
-import type { PartialDateValue } from "./userProfile/types";
-import { buildEventDatePayload } from "./userProfile/lib/dates";
-import { normalizeRating } from "./userProfile/lib/rating";
-import { resolveScopeByMediaTypeName } from "./userProfile/lib/mediaType";
-import { SortableNavLink } from "./userProfile/components/SortableNavLink";
-import { useStatuses } from "./userProfile/hooks/useStatuses";
-import { useMediaTypesNav } from "./userProfile/hooks/useMediaTypesNav";
-import { useMediaUserTable } from "./userProfile/hooks/useMediaUserTable";
+import type {PartialDateValue} from "./userProfile/types";
+import {buildEventDatePayload} from "./userProfile/lib/dates";
+import {normalizeRating} from "./userProfile/lib/rating";
+import {resolveScopeByMediaTypeName} from "./userProfile/lib/mediaType";
+import {SortableNavLink} from "./userProfile/components/SortableNavLink";
+import {useStatuses} from "./userProfile/hooks/useStatuses";
+import {useMediaTypesNav} from "./userProfile/hooks/useMediaTypesNav";
+import {useMediaUserTable} from "./userProfile/hooks/useMediaUserTable";
 
 export function UserProfile() {
-    const { t } = useTranslation();
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 600px)");
 
@@ -55,17 +53,17 @@ export function UserProfile() {
         onDropdownClose: () => combobox.resetSelectedOption(),
     });
 
-    const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+    const [modalOpened, {open: openModal, close: closeModal}] = useDisclosure(false);
     const [modalItem, setModalItem] = useState<MediaResponse | null>(null);
     const [rating, setRating] = useState<number | null>(null);
-    const [partialDate, setPartialDate] = useState<PartialDateValue>({ day: "", month: "", year: "" });
+    const [partialDate, setPartialDate] = useState<PartialDateValue>({day: "", month: "", year: ""});
     const [statusId, setStatusId] = useState<number | null>(null);
 
-    const { mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName } = useMediaTypesNav();
+    const {mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName} = useMediaTypesNav();
 
-    const { tableItems } = useMediaUserTable(active);
+    const {tableItems} = useMediaUserTable(active);
 
-    const { statuses } = useStatuses();
+    const {statuses} = useStatuses();
 
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
@@ -82,7 +80,7 @@ export function UserProfile() {
 
     const segmentedData = useMemo(() => {
         return [
-            { label: "All", value: "ALL" },
+            {label: "All", value: "ALL"},
             ...availableStatuses.map((s: StatusDto) => ({
                 label: s.name,
                 value: String(s.id),
@@ -92,12 +90,12 @@ export function UserProfile() {
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
-            activationConstraint: { distance: 6 },
+            activationConstraint: {distance: 6},
         }),
     );
 
     const onDragEnd = (event: DragEndEvent) => {
-        const { active: a, over } = event;
+        const {active: a, over} = event;
         if (!over) return;
         if (a.id === over.id) return;
 
@@ -127,7 +125,7 @@ export function UserProfile() {
 
         setModalItem(item);
         setRating(null);
-        setPartialDate({ day: "", month: "", year: "" });
+        setPartialDate({day: "", month: "", year: ""});
         setStatusId(null);
 
         openModal();
@@ -146,7 +144,7 @@ export function UserProfile() {
             return;
         }
 
-        const { eventDate, precision } = buildEventDatePayload(partialDate);
+        const {eventDate, precision} = buildEventDatePayload(partialDate);
 
         const body: MediaUserCreateRequest = {
             mediaId: Number(modalItem.id),
@@ -157,7 +155,7 @@ export function UserProfile() {
         };
 
         try {
-            await createMediaUser({ body });
+            await createMediaUser({body});
             closeModal();
         } catch (e) {
             const message = e instanceof Error ? e.message : "Неизвестная ошибка";
@@ -182,7 +180,7 @@ export function UserProfile() {
                 setLoading(true);
                 setError(null);
 
-                const data = await searchMedia({ q, page: 0, size: 10, signal: controller.signal });
+                const data = await searchMedia({q, page: 0, size: 10, mediaTypeId: active, signal: controller.signal});
 
                 setResults(data.items);
                 if (data.items.length > 0) combobox.openDropdown();
@@ -202,7 +200,7 @@ export function UserProfile() {
 
         return () => controller.abort();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debounced]);
+    }, [debounced, active]);
 
     const filteredTableItems = useMemo(() => {
         if (statusFilter === "ALL") return tableItems;
@@ -257,7 +255,8 @@ export function UserProfile() {
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                             <SortableContext items={mediaTypes.map((x) => x.id)} strategy={verticalListSortingStrategy}>
                                 {mediaTypes.map((item) => (
-                                    <SortableNavLink key={item.id} item={item} activeId={active} onActivate={setActive} />
+                                    <SortableNavLink key={item.id} item={item} activeId={active}
+                                                     onActivate={setActive}/>
                                 ))}
                             </SortableContext>
                         </DndContext>
@@ -274,10 +273,10 @@ export function UserProfile() {
                             onClick={(event) => {
                                 event.preventDefault();
                                 logout();
-                                navigate("/auth/login", { replace: true });
+                                navigate("/auth/login", {replace: true});
                             }}
                         >
-                            <IconLogout className={classes.linkIcon} stroke={1.5} />
+                            <IconLogout className={classes.linkIcon} stroke={1.5}/>
                             <span>{t("logout")}</span>
                         </a>
                     </div>
@@ -301,8 +300,8 @@ export function UserProfile() {
                                     size="md"
                                     placeholder="Search media"
                                     w="50vw"
-                                    leftSection={<span style={{ width: 18 }} />}
-                                    rightSection={loading ? <Loader size="xs" /> : null}
+                                    leftSection={<span style={{width: 18}}/>}
+                                    rightSection={loading ? <Loader size="xs"/> : null}
                                     value={query}
                                     onChange={(e) => setQuery(e.currentTarget.value)}
                                     onFocus={() => {
@@ -318,7 +317,8 @@ export function UserProfile() {
                                 <Combobox.Options>
                                     {error && <Combobox.Empty>{error}</Combobox.Empty>}
 
-                                    {!error && results.length === 0 && !loading && <Combobox.Empty>Nothing found</Combobox.Empty>}
+                                    {!error && results.length === 0 && !loading &&
+                                        <Combobox.Empty>Nothing found</Combobox.Empty>}
 
                                     {results.map((m) => (
                                         <Combobox.Option key={m.id} value={String(m.id)}>
@@ -330,17 +330,20 @@ export function UserProfile() {
                                                     gap: 12,
                                                 }}
                                             >
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                                    <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                                                        <span style={{ fontWeight: 600 }}>{m.title ?? m.originalTitle ?? "Untitled"}</span>
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>
-                                                            {m.mediaType?.code}
+                                                <div style={{display: "flex", flexDirection: "column", gap: 2}}>
+                                                    <div style={{display: "flex", gap: 8, alignItems: "baseline"}}>
+                                                        <span
+                                                            style={{fontWeight: 600}}>{m.title ?? m.originalTitle ?? "Untitled"}</span>
+                                                        <span style={{opacity: 0.7, fontSize: 12}}>
                                                             {m.releaseDate ? ` • ${m.releaseDate.slice(0, 4)}` : ""}
                                                         </span>
                                                     </div>
 
                                                     {m.originalTitle && m.title && m.originalTitle !== m.title && (
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>{m.originalTitle}</span>
+                                                        <span style={{
+                                                            opacity: 0.7,
+                                                            fontSize: 12
+                                                        }}>{m.originalTitle}</span>
                                                     )}
                                                 </div>
 
@@ -375,7 +378,8 @@ export function UserProfile() {
                     </Flex>
 
 
-                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter} classNames={classes} />
+                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter}
+                                      classNames={classes}/>
 
                     <Table.ScrollContainer maxHeight={"68vh"} minWidth={"75vw"}>
                         <Table striped highlightOnHover withRowBorders={false} horizontalSpacing={"lg"}>
@@ -395,10 +399,10 @@ export function UserProfile() {
                 </Stack>
 
                 {!isMobile && (
-                    <div style={{ position: "absolute", right: 20, bottom: 15 }}>
+                    <div style={{position: "absolute", right: 20, bottom: 15}}>
                         <Group gap="xs">
-                            <LanguageSwitcher />
-                            <ThemeToggle />
+                            <LanguageSwitcher/>
+                            <ThemeToggle/>
                         </Group>
                     </div>
                 )}
