@@ -1,6 +1,6 @@
-import {ActionIcon, Table} from "@mantine/core";
-import {IconEye, IconPencil} from "@tabler/icons-react";
-import {useMemo, useState} from "react";
+import { ActionIcon, Table } from "@mantine/core";
+import { IconEye, IconPencil } from "@tabler/icons-react";
+import React, { useMemo, useState } from "react";
 
 export type MediaUserTableItem = {
     id: number;
@@ -71,17 +71,13 @@ function isoDateKey(iso: string | null | undefined): number {
 
     if (Number.isNaN(yy) || Number.isNaN(mm) || Number.isNaN(dd)) return 0;
 
-    const m2 = Math.min(Math.max(mm, 1), 12);
-    const d2 = Math.min(Math.max(dd, 1), 31);
-
-    return yy * 10000 + m2 * 100 + d2;
+    return yy * 10000 + mm * 100 + dd;
 }
 
 function formatUserDate(iso: string | null | undefined): string {
     if (!iso) return "—";
     const s = iso.trim();
-    if (s.length >= 10) return s.slice(0, 10);
-    return s;
+    return s.length >= 10 ? s.slice(0, 10) : s;
 }
 
 export function MediaUserTable({
@@ -97,20 +93,24 @@ export function MediaUserTable({
 
     const sortedItems = useMemo(() => {
         const dir = sortDir === "ASC" ? 1 : -1;
-
         const arr = [...items];
+
         arr.sort((a, b) => {
             let res = 0;
 
             switch (sortKey) {
                 case "TITLE":
-                    res = normalizeString(a.media.title).localeCompare(normalizeString(b.media.title));
+                    res = normalizeString(a.media.title).localeCompare(
+                        normalizeString(b.media.title)
+                    );
                     break;
                 case "YEAR":
                     res = yearKey(a.media.releaseDate) - yearKey(b.media.releaseDate);
                     break;
                 case "STATUS":
-                    res = normalizeString(a.status.name).localeCompare(normalizeString(b.status.name));
+                    res = normalizeString(a.status.name).localeCompare(
+                        normalizeString(b.status.name)
+                    );
                     break;
                 case "USER_DATE":
                     res = isoDateKey(a.lastEventDate) - isoDateKey(b.lastEventDate);
@@ -131,108 +131,121 @@ export function MediaUserTable({
         if (sortKey !== key) {
             setSortKey(key);
             setSortDir("ASC");
-            return;
+        } else {
+            setSortDir((d) => (d === "ASC" ? "DESC" : "ASC"));
         }
-        setSortDir((d) => (d === "ASC" ? "DESC" : "ASC"));
     };
 
-    const sortMark = (key: SortKey) => {
-        if (sortKey !== key) return null;
-        return sortDir === "ASC" ? " ↑" : " ↓";
-    };
+    const sortMark = (key: SortKey) =>
+        sortKey === key ? (sortDir === "ASC" ? " ↑" : " ↓") : null;
 
     const showActions = Boolean(onEditClick || onDetailsClick);
 
-    const rows = sortedItems.map((x) => {
-        const title = x.media.title ?? x.media.originalTitle ?? "—";
-        const year = x.media.releaseDate ? x.media.releaseDate.slice(0, 4) : "—";
-        const userDate = formatUserDate(x.lastEventDate);
-
-        return (
-            <Table.Tr
-                key={x.id}
-                style={onRowClick ? {cursor: "pointer"} : undefined}
-                onClick={() => onRowClick?.(x)}
-            >
-                <Table.Td>{title}</Table.Td>
-
-                <Table.Td style={{width: 80}}>{year}</Table.Td>
-
-                <Table.Td>{x.status.name}</Table.Td>
-
-                <Table.Td style={{width: 120}}>{userDate}</Table.Td>
-
-                <Table.Td style={{width: 90}}>{x.rating ?? "—"}</Table.Td>
-
-                {showActions && (
-                    <Table.Td style={{width: 96, textAlign: "right"}}>
-                        {onDetailsClick && (
-                            <ActionIcon
-                                variant="subtle"
-                                radius="xl"
-                                aria-label="Details"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onDetailsClick(x);
-                                }}
-                            >
-                                <IconEye size={18} stroke={1.5}/>
-                            </ActionIcon>
-                        )}
-
-                        {onEditClick && (
-                            <ActionIcon
-                                variant="subtle"
-                                radius="xl"
-                                aria-label="Edit"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onEditClick(x);
-                                }}
-                            >
-                                <IconPencil size={18} stroke={1.5}/>
-                            </ActionIcon>
-                        )}
-                    </Table.Td>
-                )}
-            </Table.Tr>
-        );
-    });
+    const tdEllipsis: React.CSSProperties = {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    };
 
     return (
-        <Table.ScrollContainer maxHeight={maxHeight} minWidth={minWidth}>
-            <Table striped highlightOnHover withRowBorders={false} horizontalSpacing="lg">
+        <Table.ScrollContainer
+            maxHeight={maxHeight}
+            minWidth={minWidth}
+            style={{ paddingInline: "var(--mantine-spacing-lg)" }} // ← ВАЖНО
+        >
+            <Table
+                striped
+                highlightOnHover
+                withRowBorders={false}
+                horizontalSpacing="lg"
+                style={{ tableLayout: "fixed", width: "100%" }}
+            >
+                <colgroup>
+                    <col style={{ width: "42%" }} />
+                    <col style={{ width: 80 }} />
+                    <col style={{ width: "18%" }} />
+                    <col style={{ width: 120 }} />
+                    <col style={{ width: 90 }} />
+                    {showActions && <col style={{ width: 96 }} />}
+                </colgroup>
+
                 <Table.Thead>
                     <Table.Tr>
-                        <Table.Th style={{cursor: "pointer"}} onClick={() => toggleSort("TITLE")}>
+                        <Table.Th onClick={() => toggleSort("TITLE")} style={{ cursor: "pointer" }}>
                             Title{sortMark("TITLE")}
                         </Table.Th>
-
-                        <Table.Th style={{cursor: "pointer", width: 80}} onClick={() => toggleSort("YEAR")}>
+                        <Table.Th onClick={() => toggleSort("YEAR")} style={{ cursor: "pointer" }}>
                             Year{sortMark("YEAR")}
                         </Table.Th>
-
-                        <Table.Th style={{cursor: "pointer"}} onClick={() => toggleSort("STATUS")}>
+                        <Table.Th onClick={() => toggleSort("STATUS")} style={{ cursor: "pointer" }}>
                             Status{sortMark("STATUS")}
                         </Table.Th>
-
-                        <Table.Th style={{cursor: "pointer", width: 120}} onClick={() => toggleSort("USER_DATE")}>
+                        <Table.Th onClick={() => toggleSort("USER_DATE")} style={{ cursor: "pointer" }}>
                             User Date{sortMark("USER_DATE")}
                         </Table.Th>
-
-                        <Table.Th style={{cursor: "pointer", width: 90}} onClick={() => toggleSort("RATING")}>
+                        <Table.Th onClick={() => toggleSort("RATING")} style={{ cursor: "pointer" }}>
                             Rating{sortMark("RATING")}
                         </Table.Th>
-
-                        {showActions && <Table.Th style={{width: 96}}/>}
+                        {showActions && <Table.Th />}
                     </Table.Tr>
                 </Table.Thead>
 
-                <Table.Tbody>{rows}</Table.Tbody>
+                <Table.Tbody>
+                    {sortedItems.map((x) => {
+                        const title = x.media.title ?? x.media.originalTitle ?? "—";
+
+                        return (
+                            <Table.Tr
+                                key={x.id}
+                                style={onRowClick ? { cursor: "pointer" } : undefined}
+                                onClick={() => onRowClick?.(x)}
+                            >
+                                <Table.Td style={tdEllipsis} title={title}>{title}</Table.Td>
+                                <Table.Td style={tdEllipsis}>
+                                    {x.media.releaseDate?.slice(0, 4) ?? "—"}
+                                </Table.Td>
+                                <Table.Td style={tdEllipsis} title={x.status.name}>
+                                    {x.status.name}
+                                </Table.Td>
+                                <Table.Td style={tdEllipsis}>
+                                    {formatUserDate(x.lastEventDate)}
+                                </Table.Td>
+                                <Table.Td style={tdEllipsis}>{x.rating ?? "—"}</Table.Td>
+
+                                {showActions && (
+                                    <Table.Td style={{ textAlign: "right" }}>
+                                        {onDetailsClick && (
+                                            <ActionIcon
+                                                variant="subtle"
+                                                radius="xl"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDetailsClick(x);
+                                                }}
+                                            >
+                                                <IconEye size={18} stroke={1.5} />
+                                            </ActionIcon>
+                                        )}
+                                        {onEditClick && (
+                                            <ActionIcon
+                                                variant="subtle"
+                                                radius="xl"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEditClick(x);
+                                                }}
+                                            >
+                                                <IconPencil size={18} stroke={1.5} />
+                                            </ActionIcon>
+                                        )}
+                                    </Table.Td>
+                                )}
+                            </Table.Tr>
+                        );
+                    })}
+                </Table.Tbody>
             </Table>
         </Table.ScrollContainer>
     );
