@@ -1,22 +1,28 @@
-import { ActionIcon, Table } from "@mantine/core";
-import { IconEye, IconPencil } from "@tabler/icons-react";
-import { useMemo, useState } from "react";
+import {ActionIcon, Table} from "@mantine/core";
+import {IconEye, IconPencil} from "@tabler/icons-react";
+import {useMemo, useState} from "react";
 
 export type MediaUserTableItem = {
     id: number;
+
     media: {
         id: number;
         title: string | null;
         originalTitle: string | null;
         releaseDate: string | null;
-        poster?: string | null;
+        poster: string | null;
+        mediaType: {
+            id: number;
+            name: string;
+        } | null;
     };
+
     status: {
         id: number;
         name: string;
     };
-    rating: number | null;
 
+    rating: number | null;
     lastEventDate: string | null;
 };
 
@@ -145,21 +151,21 @@ export function MediaUserTable({
         return (
             <Table.Tr
                 key={x.id}
-                style={onRowClick ? { cursor: "pointer" } : undefined}
+                style={onRowClick ? {cursor: "pointer"} : undefined}
                 onClick={() => onRowClick?.(x)}
             >
                 <Table.Td>{title}</Table.Td>
 
-                <Table.Td style={{ width: 80 }}>{year}</Table.Td>
+                <Table.Td style={{width: 80}}>{year}</Table.Td>
 
                 <Table.Td>{x.status.name}</Table.Td>
 
-                <Table.Td style={{ width: 120 }}>{userDate}</Table.Td>
+                <Table.Td style={{width: 120}}>{userDate}</Table.Td>
 
-                <Table.Td style={{ width: 90 }}>{x.rating ?? "—"}</Table.Td>
+                <Table.Td style={{width: 90}}>{x.rating ?? "—"}</Table.Td>
 
                 {showActions && (
-                    <Table.Td style={{ width: 96, textAlign: "right" }}>
+                    <Table.Td style={{width: 96, textAlign: "right"}}>
                         {onDetailsClick && (
                             <ActionIcon
                                 variant="subtle"
@@ -172,7 +178,7 @@ export function MediaUserTable({
                                     onDetailsClick(x);
                                 }}
                             >
-                                <IconEye size={18} stroke={1.5} />
+                                <IconEye size={18} stroke={1.5}/>
                             </ActionIcon>
                         )}
 
@@ -188,7 +194,7 @@ export function MediaUserTable({
                                     onEditClick(x);
                                 }}
                             >
-                                <IconPencil size={18} stroke={1.5} />
+                                <IconPencil size={18} stroke={1.5}/>
                             </ActionIcon>
                         )}
                     </Table.Td>
@@ -202,27 +208,27 @@ export function MediaUserTable({
             <Table striped highlightOnHover withRowBorders={false} horizontalSpacing="lg">
                 <Table.Thead>
                     <Table.Tr>
-                        <Table.Th style={{ cursor: "pointer" }} onClick={() => toggleSort("TITLE")}>
+                        <Table.Th style={{cursor: "pointer"}} onClick={() => toggleSort("TITLE")}>
                             Title{sortMark("TITLE")}
                         </Table.Th>
 
-                        <Table.Th style={{ cursor: "pointer", width: 80 }} onClick={() => toggleSort("YEAR")}>
+                        <Table.Th style={{cursor: "pointer", width: 80}} onClick={() => toggleSort("YEAR")}>
                             Year{sortMark("YEAR")}
                         </Table.Th>
 
-                        <Table.Th style={{ cursor: "pointer" }} onClick={() => toggleSort("STATUS")}>
+                        <Table.Th style={{cursor: "pointer"}} onClick={() => toggleSort("STATUS")}>
                             Status{sortMark("STATUS")}
                         </Table.Th>
 
-                        <Table.Th style={{ cursor: "pointer", width: 120 }} onClick={() => toggleSort("USER_DATE")}>
+                        <Table.Th style={{cursor: "pointer", width: 120}} onClick={() => toggleSort("USER_DATE")}>
                             User Date{sortMark("USER_DATE")}
                         </Table.Th>
 
-                        <Table.Th style={{ cursor: "pointer", width: 90 }} onClick={() => toggleSort("RATING")}>
+                        <Table.Th style={{cursor: "pointer", width: 90}} onClick={() => toggleSort("RATING")}>
                             Rating{sortMark("RATING")}
                         </Table.Th>
 
-                        {showActions && <Table.Th style={{ width: 96 }} />}
+                        {showActions && <Table.Th style={{width: 96}}/>}
                     </Table.Tr>
                 </Table.Thead>
 

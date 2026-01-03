@@ -1,4 +1,4 @@
-import { IconLogout, IconPlus } from "@tabler/icons-react";
+import {IconLogout, IconPlus} from "@tabler/icons-react";
 import {
     ActionIcon,
     Button,
@@ -16,32 +16,32 @@ import {
 } from "@mantine/core";
 import classes from "./styles/UserProfile.module.css";
 import packageJson from "../../package.json";
-import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
-import { ThemeToggle } from "../components/ThemeToggle.tsx";
-import { useDebouncedValue, useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { type MediaResponse, searchMedia } from "../api/media.ts";
-import { MediaEditModal } from "../components/MediaEditModal";
-import { createMediaUser, type MediaUserCreateRequest } from "../api/mediaUser.ts";
-import { closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { logout } from "../api/auth/logout.ts";
-import { useNavigate } from "react-router-dom";
-import type { StatusDto } from "../api/statuses.ts";
+import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
+import {ThemeToggle} from "../components/ThemeToggle.tsx";
+import {useDebouncedValue, useDisclosure, useMediaQuery} from "@mantine/hooks";
+import {useTranslation} from "react-i18next";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {type MediaResponse, searchMedia} from "../api/media.ts";
+import {MediaEditModal} from "../components/MediaEditModal";
+import {createMediaUser, type MediaUserCreateRequest} from "../api/mediaUser.ts";
+import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {arrayMove, SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
+import {logout} from "../api/auth/logout.ts";
+import {useNavigate} from "react-router-dom";
+import type {StatusDto} from "../api/statuses.ts";
 
-import type { PartialDateValue } from "./userProfile/types";
-import { buildEventDatePayload } from "./userProfile/lib/dates";
-import { normalizeRating } from "./userProfile/lib/rating";
-import { resolveScopeByMediaTypeName } from "./userProfile/lib/mediaType";
-import { SortableNavLink } from "./userProfile/components/SortableNavLink";
-import { useStatuses } from "./userProfile/hooks/useStatuses";
-import { useMediaTypesNav } from "./userProfile/hooks/useMediaTypesNav";
-import { useMediaUserTable } from "./userProfile/hooks/useMediaUserTable";
-import { MediaUserTable, type MediaUserTableItem } from "./userProfile/components/MediaUserTable";
+import type {PartialDateValue} from "./userProfile/types";
+import {buildEventDatePayload} from "./userProfile/lib/dates";
+import {normalizeRating} from "./userProfile/lib/rating";
+import {resolveScopeByMediaTypeName} from "./userProfile/lib/mediaType";
+import {SortableNavLink} from "./userProfile/components/SortableNavLink";
+import {useStatuses} from "./userProfile/hooks/useStatuses";
+import {useMediaTypesNav} from "./userProfile/hooks/useMediaTypesNav";
+import {useMediaUserTable} from "./userProfile/hooks/useMediaUserTable";
+import {MediaUserTable, type MediaUserTableItem} from "./userProfile/components/MediaUserTable";
 
 export function UserProfile() {
-    const { t } = useTranslation();
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 600px)");
 
@@ -55,18 +55,18 @@ export function UserProfile() {
         onDropdownClose: () => combobox.resetSelectedOption(),
     });
 
-    const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+    const [modalOpened, {open: openModal, close: closeModal}] = useDisclosure(false);
     const [modalItem, setModalItem] = useState<MediaResponse | null>(null);
     const [rating, setRating] = useState<number | null>(null);
-    const [partialDate, setPartialDate] = useState<PartialDateValue>({ day: "", month: "", year: "" });
+    const [partialDate, setPartialDate] = useState<PartialDateValue>({day: "", month: "", year: ""});
     const [statusId, setStatusId] = useState<number | null>(null);
 
-    const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
+    const [detailsOpened, {open: openDetails, close: closeDetails}] = useDisclosure(false);
     const [detailsItem, setDetailsItem] = useState<MediaUserTableItem | null>(null);
 
-    const { mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName } = useMediaTypesNav();
-    const { tableItems, refetch, invalidateActive } = useMediaUserTable(active);
-    const { statuses } = useStatuses();
+    const {mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName} = useMediaTypesNav();
+    const {tableItems, refetch, invalidateActive} = useMediaUserTable(active);
+    const {statuses} = useStatuses();
 
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
@@ -83,7 +83,7 @@ export function UserProfile() {
 
     const segmentedData = useMemo(() => {
         return [
-            { label: "All", value: "ALL" },
+            {label: "All", value: "ALL"},
             ...availableStatuses.map((s: StatusDto) => ({
                 label: s.name,
                 value: String(s.id),
@@ -93,12 +93,12 @@ export function UserProfile() {
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
-            activationConstraint: { distance: 6 },
+            activationConstraint: {distance: 6},
         }),
     );
 
     const onDragEnd = (event: DragEndEvent) => {
-        const { active: a, over } = event;
+        const {active: a, over} = event;
         if (!over) return;
         if (a.id === over.id) return;
 
@@ -128,7 +128,7 @@ export function UserProfile() {
 
         setModalItem(item);
         setRating(null);
-        setPartialDate({ day: "", month: "", year: "" });
+        setPartialDate({day: "", month: "", year: ""});
         setStatusId(null);
 
         openModal();
@@ -146,7 +146,7 @@ export function UserProfile() {
         (x: MediaUserTableItem) => {
             setModalItem(x.media as unknown as MediaResponse);
             setRating(x.rating ?? null);
-            setPartialDate({ day: "", month: "", year: "" });
+            setPartialDate({day: "", month: "", year: ""});
             setStatusId(x.status?.id ?? null);
 
             openModal();
@@ -182,7 +182,7 @@ export function UserProfile() {
             return;
         }
 
-        const { eventDate, precision } = buildEventDatePayload(partialDate);
+        const {eventDate, precision} = buildEventDatePayload(partialDate);
 
         const body: MediaUserCreateRequest = {
             mediaId: Number(modalItem.id),
@@ -193,7 +193,7 @@ export function UserProfile() {
         };
 
         try {
-            await createMediaUser({ body });
+            await createMediaUser({body});
             invalidateActive();
             await refetch();
             handleCloseModal();
@@ -220,7 +220,7 @@ export function UserProfile() {
                 setLoading(true);
                 setError(null);
 
-                const data = await searchMedia({ q, page: 0, size: 10, mediaTypeId: active, signal: controller.signal });
+                const data = await searchMedia({q, page: 0, size: 10, mediaTypeId: active, signal: controller.signal});
 
                 setResults(data.items);
                 if (data.items.length > 0) combobox.openDropdown();
@@ -263,16 +263,81 @@ export function UserProfile() {
                 size="md"
             >
                 {detailsItem && (
-                    <Stack gap="sm">
-                        <Text size="sm" c="dimmed">
-                            Original: {detailsItem.media.originalTitle ?? "—"}
-                        </Text>
+                    <Stack gap="md">
+                        <Group align="flex-start" wrap="nowrap">
+                            <div
+                                style={{
+                                    width: 96,
+                                    height: 144,
+                                    borderRadius: 12,
+                                    overflow: "hidden",
+                                    background: "var(--mantine-color-gray-2)",
+                                    flex: "0 0 auto",
+                                }}
+                            >
+                                {detailsItem.media.poster && (
+                                    <img
+                                        src={detailsItem.media.poster}
+                                        alt={detailsItem.media.title ?? detailsItem.media.originalTitle ?? "poster"}
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "cover",
+                                            display: "block",
+                                        }}
+                                        loading="lazy"
+                                    />
+                                )}
+                            </div>
 
-                        <Text size="sm">Release date: {detailsItem.media.releaseDate ?? "—"}</Text>
+                            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
+                                <Text fw={700} size="lg" lineClamp={2}>
+                                    {detailsItem.media.title ?? detailsItem.media.originalTitle ?? "—"}
+                                </Text>
 
-                        <Text size="sm">Status: {detailsItem.status.name}</Text>
+                                {detailsItem.media.originalTitle &&
+                                    detailsItem.media.originalTitle !== detailsItem.media.title && (
+                                        <Text size="sm" c="dimmed" lineClamp={2}>
+                                            {detailsItem.media.originalTitle}
+                                        </Text>
+                                    )}
 
-                        <Text size="sm">Rating: {detailsItem.rating ?? "—"}</Text>
+                                <Group gap="xs">
+                                    <Text size="sm" c="dimmed">
+                                        Year: {detailsItem.media.releaseDate?.slice(0, 4) ?? "—"}
+                                    </Text>
+
+                                    {detailsItem.media.mediaType && (
+                                        <Text size="sm" c="dimmed">
+                                            Type: {detailsItem.media.mediaType.name}
+                                        </Text>
+                                    )}
+                                </Group>
+                            </Stack>
+                        </Group>
+
+                        <Divider />
+
+                        <Stack gap="xs">
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">Status</Text>
+                                <Group gap="xs">
+                                    <Text size="sm" fw={600}>{detailsItem.status.name}</Text>
+                                </Group>
+                            </Group>
+
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">Rating</Text>
+                                <Text size="sm" fw={600}>{detailsItem.rating ?? "—"}</Text>
+                            </Group>
+
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">User Date</Text>
+                                <Text size="sm" fw={600}>
+                                    {detailsItem.lastEventDate?.slice(0, 10) ?? "—"}
+                                </Text>
+                            </Group>
+                        </Stack>
 
                         <Divider />
 
@@ -323,7 +388,8 @@ export function UserProfile() {
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                             <SortableContext items={mediaTypes.map((x) => x.id)} strategy={verticalListSortingStrategy}>
                                 {mediaTypes.map((item) => (
-                                    <SortableNavLink key={item.id} item={item} activeId={active} onActivate={setActive} />
+                                    <SortableNavLink key={item.id} item={item} activeId={active}
+                                                     onActivate={setActive}/>
                                 ))}
                             </SortableContext>
                         </DndContext>
@@ -340,10 +406,10 @@ export function UserProfile() {
                             onClick={(event) => {
                                 event.preventDefault();
                                 logout();
-                                navigate("/auth/login", { replace: true });
+                                navigate("/auth/login", {replace: true});
                             }}
                         >
-                            <IconLogout className={classes.linkIcon} stroke={1.5} />
+                            <IconLogout className={classes.linkIcon} stroke={1.5}/>
                             <span>{t("logout")}</span>
                         </a>
                     </div>
@@ -367,8 +433,8 @@ export function UserProfile() {
                                     size="md"
                                     placeholder="Search media"
                                     w="50vw"
-                                    leftSection={<span style={{ width: 18 }} />}
-                                    rightSection={loading ? <Loader size="xs" /> : null}
+                                    leftSection={<span style={{width: 18}}/>}
+                                    rightSection={loading ? <Loader size="xs"/> : null}
                                     value={query}
                                     onChange={(e) => setQuery(e.currentTarget.value)}
                                     onFocus={() => {
@@ -384,7 +450,8 @@ export function UserProfile() {
                                 <Combobox.Options>
                                     {error && <Combobox.Empty>{error}</Combobox.Empty>}
 
-                                    {!error && results.length === 0 && !loading && <Combobox.Empty>Nothing found</Combobox.Empty>}
+                                    {!error && results.length === 0 && !loading &&
+                                        <Combobox.Empty>Nothing found</Combobox.Empty>}
 
                                     {results.map((m) => (
                                         <Combobox.Option key={m.id} value={String(m.id)}>
@@ -396,18 +463,21 @@ export function UserProfile() {
                                                     gap: 12,
                                                 }}
                                             >
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                                    <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                                                        <span style={{ fontWeight: 600 }}>
+                                                <div style={{display: "flex", flexDirection: "column", gap: 2}}>
+                                                    <div style={{display: "flex", gap: 8, alignItems: "baseline"}}>
+                                                        <span style={{fontWeight: 600}}>
                                                             {m.title ?? m.originalTitle ?? "Untitled"}
                                                         </span>
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>
+                                                        <span style={{opacity: 0.7, fontSize: 12}}>
                                                             {m.releaseDate ? ` • ${m.releaseDate.slice(0, 4)}` : ""}
                                                         </span>
                                                     </div>
 
                                                     {m.originalTitle && m.title && m.originalTitle !== m.title && (
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>{m.originalTitle}</span>
+                                                        <span style={{
+                                                            opacity: 0.7,
+                                                            fontSize: 12
+                                                        }}>{m.originalTitle}</span>
                                                     )}
                                                 </div>
 
@@ -431,12 +501,14 @@ export function UserProfile() {
                             </Combobox.Dropdown>
                         </Combobox>
 
-                        <ActionIcon size={40} radius="xl" variant="filled" ml={"xs"} onClick={() => navigate("/create")}>
-                            <IconPlus size={18} stroke={1.5} />
+                        <ActionIcon size={40} radius="xl" variant="filled" ml={"xs"}
+                                    onClick={() => navigate("/create")}>
+                            <IconPlus size={18} stroke={1.5}/>
                         </ActionIcon>
                     </Flex>
 
-                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter} classNames={classes} />
+                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter}
+                                      classNames={classes}/>
 
                     <MediaUserTable
                         items={filteredTableItems}
@@ -448,10 +520,10 @@ export function UserProfile() {
                 </Stack>
 
                 {!isMobile && (
-                    <div style={{ position: "absolute", right: 20, bottom: 15 }}>
+                    <div style={{position: "absolute", right: 20, bottom: 15}}>
                         <Group gap="xs">
-                            <LanguageSwitcher />
-                            <ThemeToggle />
+                            <LanguageSwitcher/>
+                            <ThemeToggle/>
                         </Group>
                     </div>
                 )}

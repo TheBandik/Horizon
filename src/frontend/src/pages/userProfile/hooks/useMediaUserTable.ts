@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { getMyMediaByType, type MediaUserItem } from "../../../api/mediaUser";
-import type { MediaUserTableItem } from "../components/MediaUserTable";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {getMyMediaByType, type MediaUserItem} from "../../../api/mediaUser";
+import type {MediaUserTableItem} from "../components/MediaUserTable";
 
 function mapToTableItem(x: MediaUserItem): MediaUserTableItem {
     return {
@@ -10,17 +10,18 @@ function mapToTableItem(x: MediaUserItem): MediaUserTableItem {
             title: x.media.title ?? null,
             originalTitle: x.media.originalTitle ?? null,
             releaseDate: x.media.releaseDate ?? null,
-            poster: (x.media as any).poster ?? null,
+            poster: x.media.poster ?? null,
+            mediaType: x.media.mediaType ?? null,
         },
         status: {
             id: x.status.id,
             name: x.status.name,
         },
         rating: x.rating ?? null,
-
-        lastEventDate: (x as any).lastEventDate ?? null,
+        lastEventDate: x.lastEventDate ?? null,
     };
 }
+
 
 export function useMediaUserTable(active: string) {
     const [itemsByType, setItemsByType] = useState<Record<number, MediaUserItem[]>>({});
@@ -35,9 +36,9 @@ export function useMediaUserTable(active: string) {
         setTableError(null);
 
         try {
-            const data = await getMyMediaByType({ mediaTypeId, signal });
+            const data = await getMyMediaByType({mediaTypeId, signal});
 
-            setItemsByType((prev) => ({ ...prev, [mediaTypeId]: data }));
+            setItemsByType((prev) => ({...prev, [mediaTypeId]: data}));
             setRawItems(data);
         } catch (e) {
             if (e instanceof DOMException && e.name === "AbortError") return;
@@ -59,7 +60,7 @@ export function useMediaUserTable(active: string) {
 
             if (opts?.skipCache) {
                 setItemsByType((prev) => {
-                    const next = { ...prev };
+                    const next = {...prev};
                     delete next[mediaTypeId];
                     return next;
                 });
@@ -75,7 +76,7 @@ export function useMediaUserTable(active: string) {
         if (Number.isNaN(mediaTypeId)) return;
 
         setItemsByType((prev) => {
-            const next = { ...prev };
+            const next = {...prev};
             delete next[mediaTypeId];
             return next;
         });
@@ -94,7 +95,7 @@ export function useMediaUserTable(active: string) {
         }
 
         const controller = new AbortController();
-        loadByType(mediaTypeId, controller.signal);
+        void loadByType(mediaTypeId, controller.signal);
 
         return () => controller.abort();
     }, [active, itemsByType, loadByType]);
