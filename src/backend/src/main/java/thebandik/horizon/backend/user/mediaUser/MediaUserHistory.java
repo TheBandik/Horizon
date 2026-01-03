@@ -27,12 +27,11 @@ public class MediaUserHistory {
     @JoinColumn(name = "media_user_id", nullable = false)
     private MediaUser mediaUser;
 
-    @Column(name = "event_date", nullable = false)
+    @Column(name = "event_date")
     private LocalDate eventDate;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(nullable = false)
     private DatePrecision precision;
 
     @Column(name = "created_at", nullable = false)

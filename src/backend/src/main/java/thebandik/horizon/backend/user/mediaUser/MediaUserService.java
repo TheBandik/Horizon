@@ -46,8 +46,14 @@ public class MediaUserService {
     public MediaUser create(MediaUserCreateRequest request, Long userId) {
         Long mediaId = request.mediaId();
         Long statusId = request.statusId();
-        LocalDate eventDate = request.eventDate();
-        DatePrecision precision = DatePrecision.valueOf(request.precision());
+
+        LocalDate eventDate = null;
+        DatePrecision precision = null;
+
+        if (request.eventDate() != null || request.precision() != null) {
+            eventDate = request.eventDate();
+            precision = DatePrecision.valueOf(request.precision());
+        }
 
         // 1. Получение данных для внесения в БД
         Media media = mediaRepository.findById(mediaId)
@@ -88,15 +94,17 @@ public class MediaUserService {
         history.setPrecision(precision);
         mediaUserHistoryRepository.save(history);
 
-        // 5. Обновление агрегаты
+        // 5. Обновление счетчика
         mediaUser.setHistoryCount(mediaUser.getHistoryCount() + 1);
 
-        if (mediaUser.getFirstEventDate() == null || eventDate.isBefore(mediaUser.getFirstEventDate())) {
-            mediaUser.setFirstEventDate(eventDate);
-        }
+        if (eventDate != null) {
+            if (mediaUser.getFirstEventDate() == null || eventDate.isBefore(mediaUser.getFirstEventDate())) {
+                mediaUser.setFirstEventDate(eventDate);
+            }
 
-        if (mediaUser.getLastEventDate() == null || eventDate.isAfter(mediaUser.getLastEventDate())) {
-            mediaUser.setLastEventDate(eventDate);
+            if (mediaUser.getLastEventDate() == null || eventDate.isAfter(mediaUser.getLastEventDate())) {
+                mediaUser.setLastEventDate(eventDate);
+            }
         }
 
         return mediaUserRepository.save(mediaUser);
