@@ -1,14 +1,14 @@
-import { Anchor, Button, PasswordInput, Stack, TextInput } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { useTranslation } from 'react-i18next';
-import { type ApiError, loginUser } from '../../api/auth/auth.ts';
-import { useNavigate } from 'react-router-dom';
-import { SmartCaptcha } from '@yandex/smart-captcha';
-import { useState, useCallback } from 'react';
-import { setToken } from '../../api/auth/token.ts';
+import {Anchor, Button, PasswordInput, Stack, TextInput} from '@mantine/core';
+import {useForm} from '@mantine/form';
+import {useTranslation} from 'react-i18next';
+import {type ApiError, loginUser} from '../../api/auth/auth.ts';
+import {useNavigate} from 'react-router-dom';
+import {SmartCaptcha} from '@yandex/smart-captcha';
+import {useCallback, useState} from 'react';
+import {setToken} from '../../api/auth/token.ts';
 
 export function LoginForm() {
-    const { t } = useTranslation();
+    const {t} = useTranslation();
     const navigate = useNavigate();
 
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export function LoginForm() {
         try {
             setSubmitting(true);
 
-            const { accessToken} = await loginUser({
+            const {accessToken} = await loginUser({
                 login: values.login,
                 password: values.password,
                 captchaToken,
@@ -90,7 +90,7 @@ export function LoginForm() {
                 />
 
                 <SmartCaptcha
-                    key={captchaKey} // важный момент: reset через key
+                    key={captchaKey}
                     sitekey={import.meta.env.VITE_YANDEX_SMARTCAPTCHA_SITEKEY}
                     language="ru"
                     onSuccess={handleCaptchaSuccess}
@@ -99,7 +99,12 @@ export function LoginForm() {
             </Stack>
 
             <Stack justify="space-between" mt="xl" align="center">
-                <Anchor component="button" type="button" c="dimmed" size="xs">
+                <Anchor component="button" type="button" c="dimmed" size="xs"
+                        onClick={(event) => {
+                            event.preventDefault();
+                            navigate("/auth/register", { replace: true });
+                        }}
+                >
                     {t('no_account')}
                 </Anchor>
                 <Button

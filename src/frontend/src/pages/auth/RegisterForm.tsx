@@ -1,4 +1,4 @@
-import {Button, PasswordInput, Stack, TextInput,} from '@mantine/core';
+import {Anchor, Button, PasswordInput, Stack, TextInput,} from '@mantine/core';
 import {useForm} from '@mantine/form';
 import {useTranslation} from 'react-i18next';
 import {type ApiError, registerUser} from "../../api/auth/auth.ts";
@@ -92,9 +92,19 @@ export function RegisterForm() {
                     radius="md"
                     {...form.getInputProps('repeated_password')}
                 />
+
             </Stack>
 
             <Stack justify="space-between" mt="xl" align={"center"}>
+                <Anchor component="button" type="button" c="dimmed" size="xs"
+                        onClick={(event) => {
+                            event.preventDefault();
+                            navigate("/auth/login", { replace: true });
+                        }}
+                >
+                    Already have an account? Login
+                </Anchor>
+
                 <Button type="submit" w={"fit-content"}>
                     {t("signup_button")}
                 </Button>
