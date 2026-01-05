@@ -1,5 +1,6 @@
 import {createTheme, MantineProvider} from '@mantine/core';
 import {BrowserRouter} from 'react-router-dom';
+import {ModalsProvider} from "@mantine/modals";
 
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
@@ -52,9 +53,11 @@ export default function App() {
 
     return (
         <MantineProvider theme={theme}>
-            <BrowserRouter>
-                <AppRouter/>
-            </BrowserRouter>
+            <ModalsProvider>
+                <BrowserRouter>
+                    <AppRouter/>
+                </BrowserRouter>
+            </ModalsProvider>
         </MantineProvider>
     );
 }

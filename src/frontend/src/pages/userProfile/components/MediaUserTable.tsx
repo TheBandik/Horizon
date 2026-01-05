@@ -1,5 +1,5 @@
 import { ActionIcon, Table } from "@mantine/core";
-import { IconEye, IconPencil } from "@tabler/icons-react";
+import { IconEye, IconPencil, IconTrash } from "@tabler/icons-react";
 import React, { useMemo, useState } from "react";
 
 export type MediaUserTableItem = {
@@ -37,6 +37,8 @@ type MediaUserTableProps = {
     onRowClick?: (item: MediaUserTableItem) => void;
     onEditClick?: (item: MediaUserTableItem) => void;
     onDetailsClick?: (item: MediaUserTableItem) => void;
+
+    onDeleteClick?: (item: MediaUserTableItem) => void;
 };
 
 function normalizeString(v: string | null | undefined): string {
@@ -87,6 +89,7 @@ export function MediaUserTable({
                                    onRowClick,
                                    onEditClick,
                                    onDetailsClick,
+                                   onDeleteClick,
                                }: MediaUserTableProps) {
     const [sortKey, setSortKey] = useState<SortKey>("TITLE");
     const [sortDir, setSortDir] = useState<SortDir>("ASC");
@@ -139,7 +142,7 @@ export function MediaUserTable({
     const sortMark = (key: SortKey) =>
         sortKey === key ? (sortDir === "ASC" ? " ↑" : " ↓") : null;
 
-    const showActions = Boolean(onEditClick || onDetailsClick);
+    const showActions = Boolean(onEditClick || onDetailsClick || onDeleteClick);
 
     const tdEllipsis: React.CSSProperties = {
         overflow: "hidden",
@@ -166,7 +169,7 @@ export function MediaUserTable({
                     <col style={{ width: "18%" }} />
                     <col style={{ width: 120 }} />
                     <col style={{ width: 90 }} />
-                    {showActions && <col style={{ width: 96 }} />}
+                    {showActions && <col style={{ width: 128 }} />}
                 </colgroup>
 
                 <Table.Thead>
@@ -227,6 +230,7 @@ export function MediaUserTable({
                                                 <IconEye size={18} stroke={1.5} />
                                             </ActionIcon>
                                         )}
+
                                         {onEditClick && (
                                             <ActionIcon
                                                 variant="subtle"
@@ -238,6 +242,20 @@ export function MediaUserTable({
                                                 }}
                                             >
                                                 <IconPencil size={18} stroke={1.5} />
+                                            </ActionIcon>
+                                        )}
+
+                                        {onDeleteClick && (
+                                            <ActionIcon
+                                                variant="subtle"
+                                                radius="xl"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDeleteClick(x);
+                                                }}
+                                            >
+                                                <IconTrash size={18} stroke={1.5} />
                                             </ActionIcon>
                                         )}
                                     </Table.Td>

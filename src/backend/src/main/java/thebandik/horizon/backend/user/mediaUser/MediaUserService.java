@@ -1,6 +1,7 @@
 package thebandik.horizon.backend.user.mediaUser;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import thebandik.horizon.backend.catalog.status.Status;
@@ -16,6 +17,7 @@ import thebandik.horizon.backend.user.mediaUser.dto.MediaUserGetByMediaTypeRespo
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 public class MediaUserService {
 
@@ -117,5 +119,24 @@ public class MediaUserService {
         return mediaUserRepository.findByUserIdAndMedia_MediaType_Id(userId, mediaTypeId).stream()
                 .map(mediaUserMapper::toResponse)
                 .toList();
+    }
+
+    @Transactional
+    public void delete(Long userId, Long mediaId) {
+        log.info("Delete media-user requested: userId = {}, mediaId = {}", userId, mediaId);
+
+        try {
+            int deleted = mediaUserRepository.deleteByUserIdAndMediaId(userId, mediaId);
+
+            if (deleted == 0) {
+                log.info("Media-user not found: userId = {}, mediaId = {}", userId, mediaId);
+                return;
+            }
+
+            log.info("Media-user deleted: userId = {}, mediaId = {}", userId, mediaId);
+        } catch (Exception e) {
+            log.error("Failed to delete media-user: userId = {}, mediaId = {}", userId, mediaId, e);
+            throw e;
+        }
     }
 }

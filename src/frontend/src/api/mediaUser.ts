@@ -57,7 +57,7 @@ export async function getMyMediaByType(params: {
     mediaTypeId: number;
     signal?: AbortSignal;
 }): Promise<MediaUserItem[]> {
-    const { mediaTypeId, signal } = params;
+    const {mediaTypeId, signal} = params;
 
     return apiFetch(
         `/api/media-user?mediaTypeId=${encodeURIComponent(mediaTypeId)}`,
@@ -66,4 +66,16 @@ export async function getMyMediaByType(params: {
             signal,
         }
     );
+}
+
+export async function deleteMediaUser(params: {
+    mediaId: number;
+    signal?: AbortSignal;
+}): Promise<void> {
+    const {mediaId, signal} = params;
+
+    await apiFetch<void>(`/api/media-user/${encodeURIComponent(mediaId)}`, {
+        method: "DELETE",
+        signal,
+    });
 }

@@ -1,6 +1,9 @@
 package thebandik.horizon.backend.user.mediaUser;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import thebandik.horizon.backend.user.User;
 
 import java.util.List;
@@ -12,4 +15,8 @@ public interface MediaUserRepository extends JpaRepository<MediaUser, Long> {
     List<MediaUser> user(User user);
 
     List<MediaUser> findByUserIdAndMedia_MediaType_Id(Long userId, Long aLong);
+
+    @Modifying
+    @Query("delete from MediaUser mu where mu.user.id = :userId and mu.media.id = :mediaId")
+    int deleteByUserIdAndMediaId(@Param("userId") Long userId, @Param("mediaId") Long mediaId);
 }

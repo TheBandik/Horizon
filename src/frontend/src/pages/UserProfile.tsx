@@ -1,4 +1,4 @@
-import {IconLogout, IconPlus} from "@tabler/icons-react";
+import {IconLogout, IconPlus, IconTrash} from "@tabler/icons-react";
 import {
     ActionIcon,
     Button,
@@ -14,6 +14,7 @@ import {
     TextInput,
     useCombobox,
 } from "@mantine/core";
+import {modals} from "@mantine/modals";
 import classes from "./styles/UserProfile.module.css";
 import packageJson from "../../package.json";
 import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
@@ -23,7 +24,7 @@ import {useTranslation} from "react-i18next";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {type MediaResponse, searchMedia} from "../api/media.ts";
 import {MediaEditModal} from "../components/MediaEditModal";
-import {createMediaUser, type MediaUserCreateRequest} from "../api/mediaUser.ts";
+import {createMediaUser, deleteMediaUser, type MediaUserCreateRequest} from "../api/mediaUser.ts";
 import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
 import {arrayMove, SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import {logout} from "../api/auth/logout.ts";
@@ -153,6 +154,35 @@ export function UserProfile() {
         },
         [openModal],
     );
+
+    const handleDeleteFromTable = useCallback(
+        (x: MediaUserTableItem) => {
+            const title = x.media.title ?? x.media.originalTitle ?? "—";
+
+            modals.openConfirmModal({
+                title: "Удалить из списка?",
+                children: <Text size="sm">{title}</Text>,
+                labels: {confirm: "Удалить", cancel: "Отмена"},
+                confirmProps: {color: "red", leftSection: <IconTrash size={16}/>},
+                onConfirm: async () => {
+                    try {
+                        await deleteMediaUser({mediaId: x.media.id});
+
+                        invalidateActive();
+                        await refetch();
+
+                        setDetailsItem((cur) => (cur?.id === x.id ? null : cur));
+                        if (detailsItem?.id === x.id) closeDetails();
+                    } catch (e) {
+                        const message = e instanceof Error ? e.message : "Неизвестная ошибка";
+                        alert(message);
+                    }
+                },
+            });
+        },
+        [invalidateActive, refetch, detailsItem, closeDetails],
+    );
+
 
     const submittingDisabled = useMemo(() => {
         if (!modalItem) return true;
@@ -290,7 +320,7 @@ export function UserProfile() {
                                 )}
                             </div>
 
-                            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
+                            <Stack gap={6} style={{minWidth: 0, flex: 1}}>
                                 <Text fw={700} size="lg" lineClamp={2}>
                                     {detailsItem.media.title ?? detailsItem.media.originalTitle ?? "—"}
                                 </Text>
@@ -316,7 +346,7 @@ export function UserProfile() {
                             </Stack>
                         </Group>
 
-                        <Divider />
+                        <Divider/>
 
                         <Stack gap="xs">
                             <Group justify="space-between">
@@ -339,21 +369,32 @@ export function UserProfile() {
                             </Group>
                         </Stack>
 
-                        <Divider />
+                        <Divider/>
 
                         <Group justify="space-between">
                             <Button variant="default" onClick={closeDetails}>
                                 Close
                             </Button>
 
-                            <Button
-                                onClick={() => {
-                                    openEditFromTable(detailsItem);
-                                    closeDetails();
-                                }}
-                            >
-                                Edit
-                            </Button>
+                            <Group>
+                                <Button
+                                    onClick={() => {
+                                        openEditFromTable(detailsItem);
+                                        closeDetails();
+                                    }}
+                                >
+                                    Edit
+                                </Button>
+                                <Button
+                                    variant="light"
+                                    onClick={() => {
+                                        handleDeleteFromTable(detailsItem)
+                                        closeDetails();
+                                    }}
+                                >
+                                    Delete
+                                </Button>
+                            </Group>
                         </Group>
                     </Stack>
                 )}
@@ -515,6 +556,7 @@ export function UserProfile() {
                         onRowClick={openDetailsDrawer}
                         onDetailsClick={openDetailsDrawer}
                         onEditClick={openEditFromTable}
+                        onDeleteClick={handleDeleteFromTable}
                     />
 
                 </Stack>

@@ -28,7 +28,7 @@ export function LanguageSwitcher() {
             >
                 <Menu.Item onClick={() => changeLanguage('ru')}>🇷🇺 Русский</Menu.Item>
                 <Menu.Item onClick={() => changeLanguage('en')}>🇺🇸 English</Menu.Item>
-                <Menu.Item onClick={() => changeLanguage('ja')}>🇯🇵 日本語</Menu.Item>
+                <Menu.Item onClick={() => changeLanguage('ja')}>🇯🇵 日本語 (beta)</Menu.Item>
             </Menu.Dropdown>
         </Menu>
     );

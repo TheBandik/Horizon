@@ -50,4 +50,10 @@ public class MediaUserController {
     ) {
         return mediaUserService.getMediaUserByMediaType(mediaTypeId, userId);
     }
+
+    @DeleteMapping("/{mediaId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long mediaId, @CurrentUser Long userId) {
+        mediaUserService.delete(userId, mediaId);
+    }
 }
