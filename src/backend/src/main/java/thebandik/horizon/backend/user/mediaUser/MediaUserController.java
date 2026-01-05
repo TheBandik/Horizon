@@ -1,12 +1,9 @@
 package thebandik.horizon.backend.user.mediaUser;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import thebandik.horizon.backend.common.CurrentUser;
-import thebandik.horizon.backend.user.mediaUser.dto.MediaUserCreateRequest;
-import thebandik.horizon.backend.user.mediaUser.dto.MediaUserGetByMediaTypeResponse;
-import thebandik.horizon.backend.user.mediaUser.dto.MediaUserResponse;
+import thebandik.horizon.backend.user.mediaUser.dto.*;
 
 import java.util.List;
 
@@ -23,24 +20,11 @@ public class MediaUserController {
     }
 
     @PostMapping
-    public ResponseEntity<MediaUserResponse> create(
-            @RequestBody MediaUserCreateRequest request,
+    public MediaUserResponse create(
+            @RequestBody MediaUserRequest request,
             @CurrentUser Long userId
     ) {
-        MediaUser mediaUser = mediaUserService.create(request, userId);
-
-        MediaUserResponse response = new MediaUserResponse(
-                mediaUser.getId(),
-                mediaUser.getMedia().getId(),
-                mediaUser.getUser().getId(),
-                mediaUser.getStatus().getId(),
-                mediaUser.getRating(),
-                mediaUser.getFirstEventDate(),
-                mediaUser.getLastEventDate(),
-                mediaUser.getHistoryCount()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return mediaUserService.create(request, userId);
     }
 
     @GetMapping
@@ -49,6 +33,20 @@ public class MediaUserController {
             @CurrentUser Long userId
     ) {
         return mediaUserService.getMediaUserByMediaType(mediaTypeId, userId);
+    }
+
+    @GetMapping("/{mediaId}")
+    public MediaUserDetailsResponse getDetails(@PathVariable Long mediaId, @CurrentUser Long userId) {
+        return mediaUserService.getDetails(userId, mediaId);
+    }
+
+    @PutMapping("/{mediaId}")
+    public MediaUserResponse updateCard(
+            @PathVariable Long mediaId,
+            @RequestBody MediaUserUpdateRequest request,
+            @CurrentUser Long userId
+    ) {
+        return mediaUserService.updateCard(userId, mediaId, request);
     }
 
     @DeleteMapping("/{mediaId}")

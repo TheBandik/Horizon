@@ -1,4 +1,4 @@
-import {IconLogout, IconPlus, IconTrash} from "@tabler/icons-react";
+import { IconLogout, IconPlus, IconTrash, IconPencil, IconCalendarPlus } from "@tabler/icons-react";
 import {
     ActionIcon,
     Button,
@@ -8,41 +8,92 @@ import {
     Flex,
     Group,
     Loader,
+    Modal,
     SegmentedControl,
     Stack,
     Text,
     TextInput,
     useCombobox,
 } from "@mantine/core";
-import {modals} from "@mantine/modals";
+import { modals } from "@mantine/modals";
 import classes from "./styles/UserProfile.module.css";
 import packageJson from "../../package.json";
-import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
-import {ThemeToggle} from "../components/ThemeToggle.tsx";
-import {useDebouncedValue, useDisclosure, useMediaQuery} from "@mantine/hooks";
-import {useTranslation} from "react-i18next";
-import {useCallback, useEffect, useMemo, useState} from "react";
-import {type MediaResponse, searchMedia} from "../api/media.ts";
-import {MediaEditModal} from "../components/MediaEditModal";
-import {createMediaUser, deleteMediaUser, type MediaUserCreateRequest} from "../api/mediaUser.ts";
-import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors} from "@dnd-kit/core";
-import {arrayMove, SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
-import {logout} from "../api/auth/logout.ts";
-import {useNavigate} from "react-router-dom";
-import type {StatusDto} from "../api/statuses.ts";
+import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
+import { ThemeToggle } from "../components/ThemeToggle.tsx";
+import { useDebouncedValue, useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { useTranslation } from "react-i18next";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { type MediaResponse, searchMedia } from "../api/media.ts";
+import { MediaEditModal } from "../components/MediaEditModal";
+import {
+    createMediaUser,
+    deleteMediaUser,
+    type MediaUserCreateRequest,
+    updateMediaUser,
+} from "../api/mediaUser.ts";
+import {
+    closestCenter,
+    DndContext,
+    type DragEndEvent,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { logout } from "../api/auth/logout.ts";
+import { useNavigate } from "react-router-dom";
+import type { StatusDto } from "../api/statuses.ts";
 
-import type {PartialDateValue} from "./userProfile/types";
-import {buildEventDatePayload} from "./userProfile/lib/dates";
-import {normalizeRating} from "./userProfile/lib/rating";
-import {resolveScopeByMediaTypeName} from "./userProfile/lib/mediaType";
-import {SortableNavLink} from "./userProfile/components/SortableNavLink";
-import {useStatuses} from "./userProfile/hooks/useStatuses";
-import {useMediaTypesNav} from "./userProfile/hooks/useMediaTypesNav";
-import {useMediaUserTable} from "./userProfile/hooks/useMediaUserTable";
-import {MediaUserTable, type MediaUserTableItem} from "./userProfile/components/MediaUserTable";
+import type { PartialDateValue } from "./userProfile/types";
+import { buildEventDatePayload } from "./userProfile/lib/dates";
+import { normalizeRating } from "./userProfile/lib/rating";
+import { resolveScopeByMediaTypeName } from "./userProfile/lib/mediaType";
+import { SortableNavLink } from "./userProfile/components/SortableNavLink";
+import { useStatuses } from "./userProfile/hooks/useStatuses";
+import { useMediaTypesNav } from "./userProfile/hooks/useMediaTypesNav";
+import { useMediaUserTable } from "./userProfile/hooks/useMediaUserTable";
+import { MediaUserTable, type MediaUserTableItem } from "./userProfile/components/MediaUserTable";
+
+import {
+    getMediaUserDetails,
+    addMediaUserHistory,
+    updateMediaUserHistory,
+    deleteMediaUserHistory,
+    type DatePrecision,
+    type MediaUserHistoryRequest,
+    type MediaUserHistoryItem,
+    type MediaUserDetailsResponse,
+} from "../api/mediaUser.ts";
+
+
+function precisionLabel(p: DatePrecision | null) {
+    if (!p) return "—";
+    if (p === "DAY") return "Day";
+    if (p === "MONTH") return "Month";
+    if (p === "YEAR") return "Year";
+    return p;
+}
+
+function formatDateISO(d: string | null) {
+    if (!d) return "—";
+    return d.slice(0, 10);
+}
+
+type HistoryModalMode = "ADD" | "EDIT";
+
+type HistoryModalState =
+    | { opened: false }
+    | {
+    opened: true;
+    mode: HistoryModalMode;
+    mediaId: number;
+    historyId: number | null;
+    value: PartialDateValue;
+    precision: DatePrecision | null;
+};
 
 export function UserProfile() {
-    const {t} = useTranslation();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 600px)");
 
@@ -52,24 +103,42 @@ export function UserProfile() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [editMediaId, setEditMediaId] = useState<number | null>(null);
+
     const combobox = useCombobox({
         onDropdownClose: () => combobox.resetSelectedOption(),
     });
 
-    const [modalOpened, {open: openModal, close: closeModal}] = useDisclosure(false);
+    const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
     const [modalItem, setModalItem] = useState<MediaResponse | null>(null);
     const [rating, setRating] = useState<number | null>(null);
-    const [partialDate, setPartialDate] = useState<PartialDateValue>({day: "", month: "", year: ""});
+
+    const [createPartialDate, setCreatePartialDate] = useState<PartialDateValue>({
+        day: "",
+        month: "",
+        year: "",
+    });
+
     const [statusId, setStatusId] = useState<number | null>(null);
 
-    const [detailsOpened, {open: openDetails, close: closeDetails}] = useDisclosure(false);
+    const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
     const [detailsItem, setDetailsItem] = useState<MediaUserTableItem | null>(null);
 
-    const {mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName} = useMediaTypesNav();
-    const {tableItems, refetch, invalidateActive} = useMediaUserTable(active);
-    const {statuses} = useStatuses();
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    const [detailsError, setDetailsError] = useState<string | null>(null);
+    const [details, setDetails] = useState<MediaUserDetailsResponse | null>(null);
+
+    const [historyModal, setHistoryModal] = useState<HistoryModalState>({ opened: false });
+
+    const { mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName } = useMediaTypesNav();
+    const { tableItems, refetch, invalidateActive } = useMediaUserTable(active);
+    const { statuses } = useStatuses();
 
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
+    const statusName = useMemo(() => {
+        if (!details?.statusId) return null;
+        return statuses.find(s => s.id === details.statusId)?.name ?? null;
+    }, [details?.statusId, statuses]);
 
     useEffect(() => {
         setStatusFilter("ALL");
@@ -84,7 +153,7 @@ export function UserProfile() {
 
     const segmentedData = useMemo(() => {
         return [
-            {label: "All", value: "ALL"},
+            { label: "All", value: "ALL" },
             ...availableStatuses.map((s: StatusDto) => ({
                 label: s.name,
                 value: String(s.id),
@@ -94,12 +163,12 @@ export function UserProfile() {
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
-            activationConstraint: {distance: 6},
-        }),
+            activationConstraint: { distance: 6 },
+        })
     );
 
     const onDragEnd = (event: DragEndEvent) => {
-        const {active: a, over} = event;
+        const { active: a, over } = event;
         if (!over) return;
         if (a.id === over.id) return;
 
@@ -124,35 +193,60 @@ export function UserProfile() {
         });
     };
 
+    // CREATE from search
     const openItemModal = (item: MediaResponse) => {
         combobox.closeDropdown();
 
+        setEditMediaId(null);
         setModalItem(item);
+
         setRating(null);
-        setPartialDate({day: "", month: "", year: ""});
+        setCreatePartialDate({ day: "", month: "", year: "" });
         setStatusId(null);
 
         openModal();
     };
 
+    const loadDetails = useCallback(
+        async (mediaId: number) => {
+            try {
+                setDetailsLoading(true);
+                setDetailsError(null);
+
+                const data = await getMediaUserDetails({ mediaId });
+                setDetails(data);
+            } catch (e) {
+                const msg = e instanceof Error ? e.message : "Неизвестная ошибка";
+                setDetailsError(msg);
+                setDetails(null);
+            } finally {
+                setDetailsLoading(false);
+            }
+        },
+        []
+    );
+
     const openDetailsDrawer = useCallback(
         (x: MediaUserTableItem) => {
             setDetailsItem(x);
             openDetails();
+            void loadDetails(x.media.id);
         },
-        [openDetails],
+        [openDetails, loadDetails]
     );
 
+    // EDIT existing card from table
     const openEditFromTable = useCallback(
         (x: MediaUserTableItem) => {
+            setEditMediaId(x.media.id);
+
             setModalItem(x.media as unknown as MediaResponse);
             setRating(x.rating ?? null);
-            setPartialDate({day: "", month: "", year: ""});
             setStatusId(x.status?.id ?? null);
 
             openModal();
         },
-        [openModal],
+        [openModal]
     );
 
     const handleDeleteFromTable = useCallback(
@@ -162,11 +256,11 @@ export function UserProfile() {
             modals.openConfirmModal({
                 title: "Удалить из списка?",
                 children: <Text size="sm">{title}</Text>,
-                labels: {confirm: "Удалить", cancel: "Отмена"},
-                confirmProps: {color: "red", leftSection: <IconTrash size={16}/>},
+                labels: { confirm: "Удалить", cancel: "Отмена" },
+                confirmProps: { color: "red", leftSection: <IconTrash size={16} /> },
                 onConfirm: async () => {
                     try {
-                        await deleteMediaUser({mediaId: x.media.id});
+                        await deleteMediaUser({ mediaId: x.media.id });
 
                         invalidateActive();
                         await refetch();
@@ -180,9 +274,8 @@ export function UserProfile() {
                 },
             });
         },
-        [invalidateActive, refetch, detailsItem, closeDetails],
+        [invalidateActive, refetch, detailsItem, closeDetails]
     );
-
 
     const submittingDisabled = useMemo(() => {
         if (!modalItem) return true;
@@ -201,6 +294,7 @@ export function UserProfile() {
 
     const handleCloseModal = useCallback(() => {
         closeModal();
+        setEditMediaId(null);
         resetSearch();
     }, [closeModal, resetSearch]);
 
@@ -212,20 +306,35 @@ export function UserProfile() {
             return;
         }
 
-        const {eventDate, precision} = buildEventDatePayload(partialDate);
-
-        const body: MediaUserCreateRequest = {
-            mediaId: Number(modalItem.id),
-            statusId: Number(statusId),
-            rating: normalizeRating(rating),
-            eventDate,
-            precision,
-        };
-
         try {
-            await createMediaUser({body});
+            if (editMediaId != null) {
+                // EDIT: only status + rating
+                await updateMediaUser({
+                    mediaId: editMediaId,
+                    body: { statusId: Number(statusId), rating: normalizeRating(rating) },
+                });
+            } else {
+                // CREATE: can send optional date
+                const { eventDate, precision } = buildEventDatePayload(createPartialDate);
+
+                const body: MediaUserCreateRequest = {
+                    mediaId: Number(modalItem.id),
+                    statusId: Number(statusId),
+                    rating: normalizeRating(rating),
+                    eventDate,
+                    precision,
+                };
+
+                await createMediaUser({ body });
+            }
+
             invalidateActive();
             await refetch();
+
+            if (detailsOpened && detailsItem) {
+                await loadDetails(detailsItem.media.id);
+            }
+
             handleCloseModal();
         } catch (e) {
             const message = e instanceof Error ? e.message : "Неизвестная ошибка";
@@ -250,7 +359,13 @@ export function UserProfile() {
                 setLoading(true);
                 setError(null);
 
-                const data = await searchMedia({q, page: 0, size: 10, mediaTypeId: active, signal: controller.signal});
+                const data = await searchMedia({
+                    q,
+                    page: 0,
+                    size: 10,
+                    mediaTypeId: active,
+                    signal: controller.signal,
+                });
 
                 setResults(data.items);
                 if (data.items.length > 0) combobox.openDropdown();
@@ -283,16 +398,199 @@ export function UserProfile() {
         setStatusId(v);
     }, []);
 
+    const closeDetailsSafe = useCallback(() => {
+        closeDetails();
+        setDetails(null);
+        setDetailsError(null);
+        setDetailsLoading(false);
+        setDetailsItem(null);
+    }, [closeDetails]);
+
+    const openAddHistory = useCallback(() => {
+        if (!detailsItem) return;
+
+        setHistoryModal({
+            opened: true,
+            mode: "ADD",
+            mediaId: detailsItem.media.id,
+            historyId: null,
+            value: { day: "", month: "", year: "" },
+            precision: null,
+        });
+    }, [detailsItem]);
+
+    const openEditHistory = useCallback((h: MediaUserHistoryItem) => {
+        if (!detailsItem) return;
+
+        const iso = h.eventDate ? h.eventDate.slice(0, 10) : "";
+        const [y, m, d] = iso ? iso.split("-") : ["", "", ""];
+
+        const p = h.precision ?? null;
+
+        setHistoryModal({
+            opened: true,
+            mode: "EDIT",
+            mediaId: detailsItem.media.id,
+            historyId: h.id,
+            value: {
+                year: y ?? "",
+                month: p === "DAY" || p === "MONTH" ? (m ?? "") : "",
+                day: p === "DAY" ? (d ?? "") : "",
+            },
+            precision: p,
+        });
+    }, [detailsItem]);
+
+
+    const closeHistoryModal = useCallback(() => {
+        setHistoryModal({ opened: false });
+    }, []);
+
+    const submitHistory = useCallback(async () => {
+        if (!historyModal.opened) return;
+
+        const { eventDate, precision } = buildEventDatePayload(historyModal.value);
+
+        const body: MediaUserHistoryRequest = {
+            eventDate,
+            precision,
+        };
+
+        try {
+            if (historyModal.mode === "ADD") {
+                await addMediaUserHistory({
+                    mediaId: historyModal.mediaId,
+                    body,
+                });
+            } else {
+                if (!historyModal.historyId) return;
+                await updateMediaUserHistory({
+                    mediaId: historyModal.mediaId,
+                    historyId: historyModal.historyId,
+                    body,
+                });
+            }
+
+            closeHistoryModal();
+
+            invalidateActive();
+            await refetch();
+            if (detailsItem) await loadDetails(detailsItem.media.id);
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : "Неизвестная ошибка";
+            alert(msg);
+        }
+    }, [historyModal, invalidateActive, refetch, detailsItem, loadDetails, closeHistoryModal]);
+
+    const confirmDeleteHistory = useCallback(
+        (h: MediaUserHistoryItem) => {
+            if (!detailsItem) return;
+
+            modals.openConfirmModal({
+                title: "Удалить дату?",
+                children: (
+                    <Stack gap={6}>
+                        <Text size="sm">Дата: {h.eventDate ? formatDateISO(h.eventDate) : "—"}</Text>
+                        <Text size="sm" c="dimmed">
+                            Точность: {precisionLabel((h.precision as DatePrecision) ?? null)}
+                        </Text>
+                    </Stack>
+                ),
+                labels: { confirm: "Удалить", cancel: "Отмена" },
+                confirmProps: { color: "red", leftSection: <IconTrash size={16} /> },
+                onConfirm: async () => {
+                    try {
+                        await deleteMediaUserHistory({
+                            mediaId: detailsItem.media.id,
+                            historyId: h.id,
+                        });
+
+                        invalidateActive();
+                        await refetch();
+                        await loadDetails(detailsItem.media.id);
+                    } catch (e) {
+                        const msg = e instanceof Error ? e.message : "Неизвестная ошибка";
+                        alert(msg);
+                    }
+                },
+            });
+        },
+        [detailsItem, invalidateActive, refetch, loadDetails]
+    );
+
     return (
         <>
+            <Modal
+                opened={historyModal.opened}
+                onClose={closeHistoryModal}
+                centered
+                radius="lg"
+                padding="lg"
+                zIndex={2000}
+                title={historyModal.opened ? (historyModal.mode === "ADD" ? "Add date" : "Edit date") : "Date"}
+            >
+                {historyModal.opened && (
+                    <Stack gap="md">
+                        <Stack gap={8}>
+                            <Text fw={700}>Date</Text>
+                            <Group grow>
+                                <TextInput
+                                    label="Year"
+                                    value={historyModal.value.year}
+                                    onChange={(e) =>
+                                        setHistoryModal((s) =>
+                                            s.opened
+                                                ? { ...s, value: { ...s.value, year: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 4) } }
+                                                : s
+                                        )
+                                    }
+                                />
+                                <TextInput
+                                    label="Month"
+                                    value={historyModal.value.month}
+                                    onChange={(e) =>
+                                        setHistoryModal((s) =>
+                                            s.opened
+                                                ? { ...s, value: { ...s.value, month: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2) } }
+                                                : s
+                                        )
+                                    }
+                                />
+                                <TextInput
+                                    label="Day"
+                                    value={historyModal.value.day}
+                                    onChange={(e) =>
+                                        setHistoryModal((s) =>
+                                            s.opened
+                                                ? { ...s, value: { ...s.value, day: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2) } }
+                                                : s
+                                        )
+                                    }
+                                />
+                            </Group>
+                            <Text size="xs" c="dimmed">
+                                Можно указать только год (YEAR), год+месяц (MONTH), или полный день (DAY).
+                            </Text>
+                        </Stack>
+
+                        <Group justify="flex-end" gap="sm">
+                            <Button variant="default" onClick={closeHistoryModal}>
+                                Cancel
+                            </Button>
+                            <Button onClick={submitHistory}>OK</Button>
+                        </Group>
+                    </Stack>
+                )}
+            </Modal>
+
             <Drawer
                 opened={detailsOpened}
-                onClose={closeDetails}
+                onClose={closeDetailsSafe}
                 title={detailsItem?.media.title ?? detailsItem?.media.originalTitle ?? "Media"}
                 position="right"
                 size="md"
             >
-                {detailsItem && (
+                {!detailsItem ? null : (
                     <Stack gap="md">
                         <Group align="flex-start" wrap="nowrap">
                             <div
@@ -320,17 +618,16 @@ export function UserProfile() {
                                 )}
                             </div>
 
-                            <Stack gap={6} style={{minWidth: 0, flex: 1}}>
+                            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
                                 <Text fw={700} size="lg" lineClamp={2}>
                                     {detailsItem.media.title ?? detailsItem.media.originalTitle ?? "—"}
                                 </Text>
 
-                                {detailsItem.media.originalTitle &&
-                                    detailsItem.media.originalTitle !== detailsItem.media.title && (
-                                        <Text size="sm" c="dimmed" lineClamp={2}>
-                                            {detailsItem.media.originalTitle}
-                                        </Text>
-                                    )}
+                                {detailsItem.media.originalTitle && detailsItem.media.originalTitle !== detailsItem.media.title && (
+                                    <Text size="sm" c="dimmed" lineClamp={2}>
+                                        {detailsItem.media.originalTitle}
+                                    </Text>
+                                )}
 
                                 <Group gap="xs">
                                     <Text size="sm" c="dimmed">
@@ -346,33 +643,102 @@ export function UserProfile() {
                             </Stack>
                         </Group>
 
-                        <Divider/>
+                        <Divider />
 
-                        <Stack gap="xs">
-                            <Group justify="space-between">
-                                <Text size="sm" c="dimmed">Status</Text>
-                                <Group gap="xs">
-                                    <Text size="sm" fw={600}>{detailsItem.status.name}</Text>
+                        {detailsLoading ? (
+                            <Group justify="center">
+                                <Loader size="sm" />
+                            </Group>
+                        ) : detailsError ? (
+                            <Text c="red">{detailsError}</Text>
+                        ) : details ? (
+                            <>
+                                <Stack gap="xs">
+                                    <Group justify="space-between">
+                                        <Text size="sm" c="dimmed">
+                                            Status
+                                        </Text>
+                                        <Text size="sm" fw={600}>
+                                            {statusName ?? detailsItem.status.name}
+                                        </Text>
+                                    </Group>
+
+                                    <Group justify="space-between">
+                                        <Text size="sm" c="dimmed">
+                                            Rating
+                                        </Text>
+                                        <Text size="sm" fw={600}>
+                                            {details.rating ?? "—"}
+                                        </Text>
+                                    </Group>
+
+                                    <Group justify="space-between">
+                                        <Text size="sm" c="dimmed">
+                                            Last Date
+                                        </Text>
+                                        <Text size="sm" fw={600}>
+                                            {formatDateISO(details.lastEventDate ?? null)}
+                                        </Text>
+                                    </Group>
+                                </Stack>
+
+                                <Divider />
+
+                                <Group justify="space-between" align="center">
+                                    <Text fw={700}>Dates</Text>
+
+                                    <Button
+                                        variant="light"
+                                        leftSection={<IconCalendarPlus size={16} />}
+                                        onClick={openAddHistory}
+                                    >
+                                        Add
+                                    </Button>
                                 </Group>
-                            </Group>
 
-                            <Group justify="space-between">
-                                <Text size="sm" c="dimmed">Rating</Text>
-                                <Text size="sm" fw={600}>{detailsItem.rating ?? "—"}</Text>
-                            </Group>
+                                {details.history.length === 0 ? (
+                                    <Text size="sm" c="dimmed">
+                                        No dates yet
+                                    </Text>
+                                ) : (
+                                    <Stack gap="xs">
+                                        {details.history.map((h) => (
+                                            <Group key={h.id} justify="space-between" wrap="nowrap">
+                                                <Stack gap={2} style={{ minWidth: 0 }}>
+                                                    <Text fw={600} lineClamp={1}>
+                                                        {h.eventDate ? formatDateISO(h.eventDate) : "—"}
+                                                    </Text>
+                                                    <Text size="xs" c="dimmed">
+                                                        {precisionLabel((h.precision as DatePrecision) ?? null)}
+                                                    </Text>
+                                                </Stack>
 
-                            <Group justify="space-between">
-                                <Text size="sm" c="dimmed">User Date</Text>
-                                <Text size="sm" fw={600}>
-                                    {detailsItem.lastEventDate?.slice(0, 10) ?? "—"}
-                                </Text>
-                            </Group>
-                        </Stack>
+                                                <Group gap="xs" wrap="nowrap">
+                                                    <ActionIcon variant="light" radius="xl" onClick={() => openEditHistory(h)} aria-label="Edit">
+                                                        <IconPencil size={16} />
+                                                    </ActionIcon>
 
-                        <Divider/>
+                                                    <ActionIcon
+                                                        variant="light"
+                                                        color="red"
+                                                        radius="xl"
+                                                        onClick={() => confirmDeleteHistory(h)}
+                                                        aria-label="Delete"
+                                                    >
+                                                        <IconTrash size={16} />
+                                                    </ActionIcon>
+                                                </Group>
+                                            </Group>
+                                        ))}
+                                    </Stack>
+                                )}
+
+                                <Divider />
+                            </>
+                        ) : null}
 
                         <Group justify="space-between">
-                            <Button variant="default" onClick={closeDetails}>
+                            <Button variant="default" onClick={closeDetailsSafe}>
                                 Close
                             </Button>
 
@@ -380,7 +746,7 @@ export function UserProfile() {
                                 <Button
                                     onClick={() => {
                                         openEditFromTable(detailsItem);
-                                        closeDetails();
+                                        closeDetailsSafe();
                                     }}
                                 >
                                     Edit
@@ -388,8 +754,8 @@ export function UserProfile() {
                                 <Button
                                     variant="light"
                                     onClick={() => {
-                                        handleDeleteFromTable(detailsItem)
-                                        closeDetails();
+                                        handleDeleteFromTable(detailsItem);
+                                        closeDetailsSafe();
                                     }}
                                 >
                                     Delete
@@ -406,13 +772,15 @@ export function UserProfile() {
                 item={modalItem}
                 rating={rating}
                 onRatingChange={setRating}
-                partialDate={partialDate}
-                onPartialDateChange={setPartialDate}
                 statusId={statusId}
                 onStatusIdChange={onStatusIdChange}
+                showDate={editMediaId == null}
+                partialDate={createPartialDate}
+                onPartialDateChange={setCreatePartialDate}
                 onOk={handleSubmit}
                 okDisabled={submittingDisabled}
             />
+
 
             <Flex>
                 <nav className={classes.navbar}>
@@ -429,8 +797,7 @@ export function UserProfile() {
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                             <SortableContext items={mediaTypes.map((x) => x.id)} strategy={verticalListSortingStrategy}>
                                 {mediaTypes.map((item) => (
-                                    <SortableNavLink key={item.id} item={item} activeId={active}
-                                                     onActivate={setActive}/>
+                                    <SortableNavLink key={item.id} item={item} activeId={active} onActivate={setActive} />
                                 ))}
                             </SortableContext>
                         </DndContext>
@@ -447,10 +814,10 @@ export function UserProfile() {
                             onClick={(event) => {
                                 event.preventDefault();
                                 logout();
-                                navigate("/auth/login", {replace: true});
+                                navigate("/auth/login", { replace: true });
                             }}
                         >
-                            <IconLogout className={classes.linkIcon} stroke={1.5}/>
+                            <IconLogout className={classes.linkIcon} stroke={1.5} />
                             <span>{t("logout")}</span>
                         </a>
                     </div>
@@ -474,8 +841,8 @@ export function UserProfile() {
                                     size="md"
                                     placeholder="Search media"
                                     w="50vw"
-                                    leftSection={<span style={{width: 18}}/>}
-                                    rightSection={loading ? <Loader size="xs"/> : null}
+                                    leftSection={<span style={{ width: 18 }} />}
+                                    rightSection={loading ? <Loader size="xs" /> : null}
                                     value={query}
                                     onChange={(e) => setQuery(e.currentTarget.value)}
                                     onFocus={() => {
@@ -491,8 +858,7 @@ export function UserProfile() {
                                 <Combobox.Options>
                                     {error && <Combobox.Empty>{error}</Combobox.Empty>}
 
-                                    {!error && results.length === 0 && !loading &&
-                                        <Combobox.Empty>Nothing found</Combobox.Empty>}
+                                    {!error && results.length === 0 && !loading && <Combobox.Empty>Nothing found</Combobox.Empty>}
 
                                     {results.map((m) => (
                                         <Combobox.Option key={m.id} value={String(m.id)}>
@@ -504,21 +870,16 @@ export function UserProfile() {
                                                     gap: 12,
                                                 }}
                                             >
-                                                <div style={{display: "flex", flexDirection: "column", gap: 2}}>
-                                                    <div style={{display: "flex", gap: 8, alignItems: "baseline"}}>
-                                                        <span style={{fontWeight: 600}}>
-                                                            {m.title ?? m.originalTitle ?? "Untitled"}
-                                                        </span>
-                                                        <span style={{opacity: 0.7, fontSize: 12}}>
-                                                            {m.releaseDate ? ` • ${m.releaseDate.slice(0, 4)}` : ""}
-                                                        </span>
+                                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                                    <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                                                        <span style={{ fontWeight: 600 }}>{m.title ?? m.originalTitle ?? "Untitled"}</span>
+                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>
+                              {m.releaseDate ? ` • ${m.releaseDate.slice(0, 4)}` : ""}
+                            </span>
                                                     </div>
 
                                                     {m.originalTitle && m.title && m.originalTitle !== m.title && (
-                                                        <span style={{
-                                                            opacity: 0.7,
-                                                            fontSize: 12
-                                                        }}>{m.originalTitle}</span>
+                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>{m.originalTitle}</span>
                                                     )}
                                                 </div>
 
@@ -542,14 +903,12 @@ export function UserProfile() {
                             </Combobox.Dropdown>
                         </Combobox>
 
-                        <ActionIcon size={40} radius="xl" variant="filled" ml={"xs"}
-                                    onClick={() => navigate("/create")}>
-                            <IconPlus size={18} stroke={1.5}/>
+                        <ActionIcon size={40} radius="xl" variant="filled" ml={"xs"} onClick={() => navigate("/create")}>
+                            <IconPlus size={18} stroke={1.5} />
                         </ActionIcon>
                     </Flex>
 
-                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter}
-                                      classNames={classes}/>
+                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter} classNames={classes} />
 
                     <MediaUserTable
                         items={filteredTableItems}
@@ -558,14 +917,13 @@ export function UserProfile() {
                         onEditClick={openEditFromTable}
                         onDeleteClick={handleDeleteFromTable}
                     />
-
                 </Stack>
 
                 {!isMobile && (
-                    <div style={{position: "absolute", right: 20, bottom: 15}}>
+                    <div style={{ position: "absolute", right: 20, bottom: 15 }}>
                         <Group gap="xs">
-                            <LanguageSwitcher/>
-                            <ThemeToggle/>
+                            <LanguageSwitcher />
+                            <ThemeToggle />
                         </Group>
                     </div>
                 )}

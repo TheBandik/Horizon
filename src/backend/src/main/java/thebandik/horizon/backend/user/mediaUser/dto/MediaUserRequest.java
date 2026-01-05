@@ -2,7 +2,7 @@ package thebandik.horizon.backend.user.mediaUser.dto;
 
 import java.time.LocalDate;
 
-public record MediaUserCreateRequest(
+public record MediaUserRequest(
         Long mediaId,
         Long statusId,
         Short rating,

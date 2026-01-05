@@ -1,4 +1,4 @@
-package thebandik.horizon.backend.user.mediaUser;
+package thebandik.horizon.backend.user.mediaUser.mediaUserHistory;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import thebandik.horizon.backend.user.mediaUser.DatePrecision;
+import thebandik.horizon.backend.user.mediaUser.MediaUser;
 
 import java.time.Instant;
 import java.time.LocalDate;
