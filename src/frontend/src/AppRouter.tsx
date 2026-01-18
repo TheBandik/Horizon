@@ -58,6 +58,7 @@ export function AppRouter() {
 
             {/* Фоллбек */}
             <Route path="*" element={<Navigate to="/" replace/>}/>
+            <Route path="/" element={<Navigate to="/user" replace />} />
         </Routes>
     );
 }

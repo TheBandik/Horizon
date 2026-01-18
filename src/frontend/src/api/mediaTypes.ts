@@ -6,7 +6,7 @@ export type MediaTypeDto = {
 };
 
 export async function getMediaTypes(params?: { signal?: AbortSignal }): Promise<MediaTypeDto[]> {
-    return apiFetch("/api/media-types", {
+    return apiFetch("/media-types", {
         method: "GET",
         signal: params?.signal,
     });

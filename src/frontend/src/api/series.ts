@@ -6,7 +6,7 @@ export type SeriesDto = {
 };
 
 export async function getSeries(params?: { signal?: AbortSignal }): Promise<SeriesDto[]> {
-    return apiFetch("/api/series", {
+    return apiFetch("/series", {
         method: "GET",
         signal: params?.signal,
     });

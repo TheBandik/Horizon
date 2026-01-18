@@ -43,7 +43,7 @@ export async function searchMedia(params: {
         mediaTypeId: String(params.mediaTypeId)
     });
 
-    return apiFetch<PageResponse<MediaResponse>>(`/api/media/search?${qs.toString()}`, {
+    return apiFetch<PageResponse<MediaResponse>>(`/media/search?${qs.toString()}`, {
         method: "GET",
         signal: params.signal,
     });
@@ -75,7 +75,7 @@ export async function createMedia(params: {
         form.append("poster", params.poster);
     }
 
-    return apiFetch<void>("/api/media", {
+    return apiFetch<void>("/media", {
         method: "POST",
         body: form,
         signal: params.signal,

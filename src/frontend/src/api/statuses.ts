@@ -10,5 +10,5 @@ export type StatusDto = {
 };
 
 export async function getStatuses(params?: { signal?: AbortSignal }): Promise<StatusDto[]> {
-    return apiFetch("/api/status", { method: "GET", signal: params?.signal });
+    return apiFetch("/status", { method: "GET", signal: params?.signal });
 }

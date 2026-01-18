@@ -28,7 +28,7 @@ export type ApiError = {
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function registerUser(dto: RegisterDto): Promise<void> {
-    const response = await fetch(`${API_URL}/api/auth/register`, {
+    const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(dto),
@@ -50,7 +50,7 @@ export async function registerUser(dto: RegisterDto): Promise<void> {
 }
 
 export async function loginUser(dto: LoginDto): Promise<LoginResponse> {
-    return apiFetch<LoginResponse>('/api/auth/login', {
+    return apiFetch<LoginResponse>('/auth/login', {
         method: 'POST',
         body: JSON.stringify(dto),
     });

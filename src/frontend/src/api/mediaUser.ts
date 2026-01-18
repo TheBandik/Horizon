@@ -74,7 +74,7 @@ export async function createMediaUser(params: {
     body: MediaUserCreateRequest;
     signal?: AbortSignal;
 }): Promise<MediaUserResponse> {
-    return apiFetch<MediaUserResponse>("/api/media-user", {
+    return apiFetch<MediaUserResponse>("/media-user", {
         method: "POST",
         body: JSON.stringify(params.body),
         signal: params.signal,
@@ -87,7 +87,7 @@ export async function getMyMediaByType(params: {
 }): Promise<MediaUserItem[]> {
     const { mediaTypeId, signal } = params;
 
-    return apiFetch(`/api/media-user?mediaTypeId=${encodeURIComponent(mediaTypeId)}`, {
+    return apiFetch(`/media-user?mediaTypeId=${encodeURIComponent(mediaTypeId)}`, {
         method: "GET",
         signal,
     });
@@ -99,7 +99,7 @@ export async function deleteMediaUser(params: {
 }): Promise<void> {
     const { mediaId, signal } = params;
 
-    await apiFetch<void>(`/api/media-user/${encodeURIComponent(mediaId)}`, {
+    await apiFetch<void>(`/media-user/${encodeURIComponent(mediaId)}`, {
         method: "DELETE",
         signal,
     });
@@ -112,7 +112,7 @@ export async function updateMediaUser(params: {
 }): Promise<MediaUserResponse> {
     const { mediaId, body, signal } = params;
 
-    return apiFetch<MediaUserResponse>(`/api/media-user/${encodeURIComponent(mediaId)}`, {
+    return apiFetch<MediaUserResponse>(`/media-user/${encodeURIComponent(mediaId)}`, {
         method: "PUT",
         body: JSON.stringify(body),
         signal,
@@ -128,7 +128,7 @@ export async function getMediaUserDetails(params: {
 }): Promise<MediaUserDetailsResponse> {
     const { mediaId, signal } = params;
 
-    return apiFetch<MediaUserDetailsResponse>(`/api/media-user/${encodeURIComponent(mediaId)}`, {
+    return apiFetch<MediaUserDetailsResponse>(`/media-user/${encodeURIComponent(mediaId)}`, {
         method: "GET",
         signal,
     });
@@ -144,7 +144,7 @@ export async function addMediaUserHistory(params: {
 }): Promise<MediaUserHistoryItem> {
     const { mediaId, body, signal } = params;
 
-    return apiFetch<MediaUserHistoryItem>(`/api/media-user/${encodeURIComponent(mediaId)}/history`, {
+    return apiFetch<MediaUserHistoryItem>(`/media-user/${encodeURIComponent(mediaId)}/history`, {
         method: "POST",
         body: JSON.stringify(body),
         signal,
@@ -160,7 +160,7 @@ export async function updateMediaUserHistory(params: {
     const { mediaId, historyId, body, signal } = params;
 
     return apiFetch<MediaUserHistoryItem>(
-        `/api/media-user/${encodeURIComponent(mediaId)}/history/${encodeURIComponent(historyId)}`,
+        `/media-user/${encodeURIComponent(mediaId)}/history/${encodeURIComponent(historyId)}`,
         {
             method: "PUT",
             body: JSON.stringify(body),
@@ -177,7 +177,7 @@ export async function deleteMediaUserHistory(params: {
     const { mediaId, historyId, signal } = params;
 
     await apiFetch<void>(
-        `/api/media-user/${encodeURIComponent(mediaId)}/history/${encodeURIComponent(historyId)}`,
+        `/media-user/${encodeURIComponent(mediaId)}/history/${encodeURIComponent(historyId)}`,
         {
             method: "DELETE",
             signal,
