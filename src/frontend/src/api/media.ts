@@ -15,36 +15,47 @@ export type MediaResponse = {
     mediaType: MediaTypeResponse;
 };
 
-export type PageResponse<T> = {
-    items: T[];
-    page: number;
-    size: number;
-    totalElements: number;
-    totalPages: number;
+export type ExternalGameSearchItem = {
+    provider: "RAWG";
+    externalId: string;
+    title: string;
+    released: string | null;
+    poster: string | null;
+    alreadyImported: boolean;
+};
+
+export type MixedMediaSearchResponse = {
+    local: MediaResponse[];
+    rawg: ExternalGameSearchItem[];
 };
 
 // ===== Search =====
-export async function searchMedia(params: {
+export async function searchMixedMedia(params: {
     q: string;
-    page: number;
-    size: number;
     mediaTypeId: string;
-    signal: AbortSignal
-}): Promise<PageResponse<MediaResponse>> {
-    const page = params.page ?? 0;
-    const size = params.size ?? 10;
-
-    const query = (params.q ?? "").trim();
+    signal: AbortSignal;
+}): Promise<MixedMediaSearchResponse> {
+    const q = (params.q ?? "").trim();
 
     const qs = new URLSearchParams({
-        query,
-        page: String(page),
-        size: String(size),
-        mediaTypeId: String(params.mediaTypeId)
+        q,
+        mediaTypeId: String(params.mediaTypeId),
     });
 
-    return apiFetch<PageResponse<MediaResponse>>(`/media/search?${qs.toString()}`, {
+    return apiFetch<MixedMediaSearchResponse>(`/search/media?${qs.toString()}`, {
         method: "GET",
+        signal: params.signal,
+    });
+}
+
+export async function importRawgGame(params: {
+    externalId: string;
+    signal?: AbortSignal;
+}): Promise<MediaResponse> {
+    return apiFetch<MediaResponse>(`/external/rawg/import`, {
+        method: "POST",
+        body: JSON.stringify({ externalId: params.externalId }),
+        headers: { "Content-Type": "application/json" },
         signal: params.signal,
     });
 }

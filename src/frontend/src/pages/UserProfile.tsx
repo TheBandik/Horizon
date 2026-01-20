@@ -1,4 +1,4 @@
-import { IconLogout, IconPlus, IconTrash, IconPencil, IconCalendarPlus } from "@tabler/icons-react";
+import {IconCalendarPlus, IconLogout, IconPencil, IconPlus, IconTrash} from "@tabler/icons-react";
 import {
     ActionIcon,
     Button,
@@ -15,55 +15,45 @@ import {
     TextInput,
     useCombobox,
 } from "@mantine/core";
-import { modals } from "@mantine/modals";
+import {modals} from "@mantine/modals";
 import classes from "./styles/UserProfile.module.css";
 import packageJson from "../../package.json";
-import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
-import { ThemeToggle } from "../components/ThemeToggle.tsx";
-import { useDebouncedValue, useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { type MediaResponse, searchMedia } from "../api/media.ts";
-import { MediaEditModal } from "../components/MediaEditModal";
+import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
+import {ThemeToggle} from "../components/ThemeToggle.tsx";
+import {useDebouncedValue, useDisclosure, useMediaQuery} from "@mantine/hooks";
+import {useTranslation} from "react-i18next";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {type ExternalGameSearchItem, importRawgGame, type MediaResponse, searchMixedMedia,} from "../api/media.ts";
+import {MediaEditModal} from "../components/MediaEditModal";
 import {
-    createMediaUser,
-    deleteMediaUser,
-    type MediaUserCreateRequest,
-    updateMediaUser,
-} from "../api/mediaUser.ts";
-import {
-    closestCenter,
-    DndContext,
-    type DragEndEvent,
-    PointerSensor,
-    useSensor,
-    useSensors,
-} from "@dnd-kit/core";
-import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { logout } from "../api/auth/logout.ts";
-import { useNavigate } from "react-router-dom";
-import type { StatusDto } from "../api/statuses.ts";
-
-import type { PartialDateValue } from "./userProfile/types";
-import { buildEventDatePayload } from "./userProfile/lib/dates";
-import { normalizeRating } from "./userProfile/lib/rating";
-import { resolveScopeByMediaTypeName } from "./userProfile/lib/mediaType";
-import { SortableNavLink } from "./userProfile/components/SortableNavLink";
-import { useStatuses } from "./userProfile/hooks/useStatuses";
-import { useMediaTypesNav } from "./userProfile/hooks/useMediaTypesNav";
-import { useMediaUserTable } from "./userProfile/hooks/useMediaUserTable";
-import { MediaUserTable, type MediaUserTableItem } from "./userProfile/components/MediaUserTable";
-
-import {
-    getMediaUserDetails,
     addMediaUserHistory,
-    updateMediaUserHistory,
-    deleteMediaUserHistory,
+    createMediaUser,
     type DatePrecision,
-    type MediaUserHistoryRequest,
-    type MediaUserHistoryItem,
+    deleteMediaUser,
+    deleteMediaUserHistory,
+    getMediaUserDetails,
+    type MediaUserCreateRequest,
     type MediaUserDetailsResponse,
+    type MediaUserHistoryItem,
+    type MediaUserHistoryRequest,
+    updateMediaUser,
+    updateMediaUserHistory,
 } from "../api/mediaUser.ts";
+import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors,} from "@dnd-kit/core";
+import {arrayMove, SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
+import {logout} from "../api/auth/logout.ts";
+import {useNavigate} from "react-router-dom";
+import type {StatusDto} from "../api/statuses.ts";
+
+import type {PartialDateValue} from "./userProfile/types";
+import {buildEventDatePayload} from "./userProfile/lib/dates";
+import {normalizeRating} from "./userProfile/lib/rating";
+import {resolveScopeByMediaTypeName} from "./userProfile/lib/mediaType";
+import {SortableNavLink} from "./userProfile/components/SortableNavLink";
+import {useStatuses} from "./userProfile/hooks/useStatuses";
+import {useMediaTypesNav} from "./userProfile/hooks/useMediaTypesNav";
+import {useMediaUserTable} from "./userProfile/hooks/useMediaUserTable";
+import {MediaUserTable, type MediaUserTableItem} from "./userProfile/components/MediaUserTable";
 
 
 function precisionLabel(p: DatePrecision | null) {
@@ -93,13 +83,14 @@ type HistoryModalState =
 };
 
 export function UserProfile() {
-    const { t } = useTranslation();
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 600px)");
 
     const [query, setQuery] = useState("");
     const [debounced] = useDebouncedValue(query, 250);
     const [results, setResults] = useState<MediaResponse[]>([]);
+    const [rawgResults, setRawgResults] = useState<ExternalGameSearchItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -109,7 +100,7 @@ export function UserProfile() {
         onDropdownClose: () => combobox.resetSelectedOption(),
     });
 
-    const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+    const [modalOpened, {open: openModal, close: closeModal}] = useDisclosure(false);
     const [modalItem, setModalItem] = useState<MediaResponse | null>(null);
     const [rating, setRating] = useState<number | null>(null);
 
@@ -121,18 +112,18 @@ export function UserProfile() {
 
     const [statusId, setStatusId] = useState<number | null>(null);
 
-    const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
+    const [detailsOpened, {open: openDetails, close: closeDetails}] = useDisclosure(false);
     const [detailsItem, setDetailsItem] = useState<MediaUserTableItem | null>(null);
 
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [detailsError, setDetailsError] = useState<string | null>(null);
     const [details, setDetails] = useState<MediaUserDetailsResponse | null>(null);
 
-    const [historyModal, setHistoryModal] = useState<HistoryModalState>({ opened: false });
+    const [historyModal, setHistoryModal] = useState<HistoryModalState>({opened: false});
 
-    const { mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName } = useMediaTypesNav();
-    const { tableItems, refetch, invalidateActive } = useMediaUserTable(active);
-    const { statuses } = useStatuses();
+    const {mediaTypes, setMediaTypes, active, setActive, activeMediaTypeName} = useMediaTypesNav();
+    const {tableItems, refetch, invalidateActive} = useMediaUserTable(active);
+    const {statuses} = useStatuses();
 
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
     const statusName = useMemo(() => {
@@ -153,7 +144,7 @@ export function UserProfile() {
 
     const segmentedData = useMemo(() => {
         return [
-            { label: "All", value: "ALL" },
+            {label: "All", value: "ALL"},
             ...availableStatuses.map((s: StatusDto) => ({
                 label: s.name,
                 value: String(s.id),
@@ -163,12 +154,12 @@ export function UserProfile() {
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
-            activationConstraint: { distance: 6 },
+            activationConstraint: {distance: 6},
         })
     );
 
     const onDragEnd = (event: DragEndEvent) => {
-        const { active: a, over } = event;
+        const {active: a, over} = event;
         if (!over) return;
         if (a.id === over.id) return;
 
@@ -193,6 +184,10 @@ export function UserProfile() {
         });
     };
 
+    const rawgVisibleResults = useMemo(() => {
+        return rawgResults.filter((x) => !x.alreadyImported);
+    }, [rawgResults]);
+
     // CREATE from search
     const openItemModal = (item: MediaResponse) => {
         combobox.closeDropdown();
@@ -201,11 +196,41 @@ export function UserProfile() {
         setModalItem(item);
 
         setRating(null);
-        setCreatePartialDate({ day: "", month: "", year: "" });
+        setCreatePartialDate({day: "", month: "", year: ""});
         setStatusId(null);
 
         openModal();
     };
+
+    const handlePickRawg = useCallback(
+        async (externalId: string) => {
+            const controller = new AbortController();
+
+            try {
+                setLoading(true);
+                setError(null);
+
+                const media = await importRawgGame({externalId, signal: controller.signal});
+
+                setResults((prev) => {
+                    if (prev.some((x) => x.id === media.id)) return prev;
+                    return [media, ...prev];
+                });
+
+                setRawgResults((prev) =>
+                    prev.map((x) => (x.externalId === externalId ? {...x, alreadyImported: true} : x))
+                );
+
+                openItemModal(media);
+            } catch (e) {
+                const message = e instanceof Error ? e.message : "Import failed";
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [openItemModal]
+    );
 
     const loadDetails = useCallback(
         async (mediaId: number) => {
@@ -213,7 +238,7 @@ export function UserProfile() {
                 setDetailsLoading(true);
                 setDetailsError(null);
 
-                const data = await getMediaUserDetails({ mediaId });
+                const data = await getMediaUserDetails({mediaId});
                 setDetails(data);
             } catch (e) {
                 const msg = e instanceof Error ? e.message : "Неизвестная ошибка";
@@ -256,11 +281,11 @@ export function UserProfile() {
             modals.openConfirmModal({
                 title: "Удалить из списка?",
                 children: <Text size="sm">{title}</Text>,
-                labels: { confirm: "Удалить", cancel: "Отмена" },
-                confirmProps: { color: "red", leftSection: <IconTrash size={16} /> },
+                labels: {confirm: "Удалить", cancel: "Отмена"},
+                confirmProps: {color: "red", leftSection: <IconTrash size={16}/>},
                 onConfirm: async () => {
                     try {
-                        await deleteMediaUser({ mediaId: x.media.id });
+                        await deleteMediaUser({mediaId: x.media.id});
 
                         invalidateActive();
                         await refetch();
@@ -285,6 +310,7 @@ export function UserProfile() {
     const resetSearch = useCallback(() => {
         setQuery("");
         setResults([]);
+        setRawgResults([]);
         setError(null);
         setLoading(false);
 
@@ -311,11 +337,11 @@ export function UserProfile() {
                 // EDIT: only status + rating
                 await updateMediaUser({
                     mediaId: editMediaId,
-                    body: { statusId: Number(statusId), rating: normalizeRating(rating) },
+                    body: {statusId: Number(statusId), rating: normalizeRating(rating)},
                 });
             } else {
                 // CREATE: can send optional date
-                const { eventDate, precision } = buildEventDatePayload(createPartialDate);
+                const {eventDate, precision} = buildEventDatePayload(createPartialDate);
 
                 const body: MediaUserCreateRequest = {
                     mediaId: Number(modalItem.id),
@@ -325,7 +351,7 @@ export function UserProfile() {
                     precision,
                 };
 
-                await createMediaUser({ body });
+                await createMediaUser({body});
             }
 
             invalidateActive();
@@ -359,17 +385,18 @@ export function UserProfile() {
                 setLoading(true);
                 setError(null);
 
-                const data = await searchMedia({
+                const data = await searchMixedMedia({
                     q,
-                    page: 0,
-                    size: 10,
                     mediaTypeId: active,
                     signal: controller.signal,
                 });
 
-                setResults(data.items);
-                if (data.items.length > 0) combobox.openDropdown();
+                setResults(data.local);
+                setRawgResults(data.rawg);
+
+                if (data.local.length > 0 || data.rawg.length > 0) combobox.openDropdown();
                 else combobox.closeDropdown();
+
             } catch (e) {
                 if (e instanceof DOMException && e.name === "AbortError") return;
 
@@ -377,6 +404,7 @@ export function UserProfile() {
 
                 setError(message);
                 setResults([]);
+                setRawgResults([]);
                 combobox.closeDropdown();
             } finally {
                 setLoading(false);
@@ -414,7 +442,7 @@ export function UserProfile() {
             mode: "ADD",
             mediaId: detailsItem.media.id,
             historyId: null,
-            value: { day: "", month: "", year: "" },
+            value: {day: "", month: "", year: ""},
             precision: null,
         });
     }, [detailsItem]);
@@ -443,13 +471,13 @@ export function UserProfile() {
 
 
     const closeHistoryModal = useCallback(() => {
-        setHistoryModal({ opened: false });
+        setHistoryModal({opened: false});
     }, []);
 
     const submitHistory = useCallback(async () => {
         if (!historyModal.opened) return;
 
-        const { eventDate, precision } = buildEventDatePayload(historyModal.value);
+        const {eventDate, precision} = buildEventDatePayload(historyModal.value);
 
         const body: MediaUserHistoryRequest = {
             eventDate,
@@ -496,8 +524,8 @@ export function UserProfile() {
                         </Text>
                     </Stack>
                 ),
-                labels: { confirm: "Удалить", cancel: "Отмена" },
-                confirmProps: { color: "red", leftSection: <IconTrash size={16} /> },
+                labels: {confirm: "Удалить", cancel: "Отмена"},
+                confirmProps: {color: "red", leftSection: <IconTrash size={16}/>},
                 onConfirm: async () => {
                     try {
                         await deleteMediaUserHistory({
@@ -540,7 +568,13 @@ export function UserProfile() {
                                     onChange={(e) =>
                                         setHistoryModal((s) =>
                                             s.opened
-                                                ? { ...s, value: { ...s.value, year: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 4) } }
+                                                ? {
+                                                    ...s,
+                                                    value: {
+                                                        ...s.value,
+                                                        year: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 4)
+                                                    }
+                                                }
                                                 : s
                                         )
                                     }
@@ -551,7 +585,13 @@ export function UserProfile() {
                                     onChange={(e) =>
                                         setHistoryModal((s) =>
                                             s.opened
-                                                ? { ...s, value: { ...s.value, month: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2) } }
+                                                ? {
+                                                    ...s,
+                                                    value: {
+                                                        ...s.value,
+                                                        month: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2)
+                                                    }
+                                                }
                                                 : s
                                         )
                                     }
@@ -562,7 +602,13 @@ export function UserProfile() {
                                     onChange={(e) =>
                                         setHistoryModal((s) =>
                                             s.opened
-                                                ? { ...s, value: { ...s.value, day: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2) } }
+                                                ? {
+                                                    ...s,
+                                                    value: {
+                                                        ...s.value,
+                                                        day: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2)
+                                                    }
+                                                }
                                                 : s
                                         )
                                     }
@@ -610,7 +656,7 @@ export function UserProfile() {
                                         style={{
                                             width: "100%",
                                             height: "100%",
-                                            objectFit: "cover",
+                                            objectFit: "contain",
                                             display: "block",
                                         }}
                                         loading="lazy"
@@ -618,7 +664,7 @@ export function UserProfile() {
                                 )}
                             </div>
 
-                            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
+                            <Stack gap={6} style={{minWidth: 0, flex: 1}}>
                                 <Text fw={700} size="lg" lineClamp={2}>
                                     {detailsItem.media.title ?? detailsItem.media.originalTitle ?? "—"}
                                 </Text>
@@ -643,11 +689,11 @@ export function UserProfile() {
                             </Stack>
                         </Group>
 
-                        <Divider />
+                        <Divider/>
 
                         {detailsLoading ? (
                             <Group justify="center">
-                                <Loader size="sm" />
+                                <Loader size="sm"/>
                             </Group>
                         ) : detailsError ? (
                             <Text c="red">{detailsError}</Text>
@@ -682,14 +728,14 @@ export function UserProfile() {
                                     </Group>
                                 </Stack>
 
-                                <Divider />
+                                <Divider/>
 
                                 <Group justify="space-between" align="center">
                                     <Text fw={700}>Dates</Text>
 
                                     <Button
                                         variant="light"
-                                        leftSection={<IconCalendarPlus size={16} />}
+                                        leftSection={<IconCalendarPlus size={16}/>}
                                         onClick={openAddHistory}
                                     >
                                         Add
@@ -704,7 +750,7 @@ export function UserProfile() {
                                     <Stack gap="xs">
                                         {details.history.map((h) => (
                                             <Group key={h.id} justify="space-between" wrap="nowrap">
-                                                <Stack gap={2} style={{ minWidth: 0 }}>
+                                                <Stack gap={2} style={{minWidth: 0}}>
                                                     <Text fw={600} lineClamp={1}>
                                                         {h.eventDate ? formatDateISO(h.eventDate) : "—"}
                                                     </Text>
@@ -714,8 +760,9 @@ export function UserProfile() {
                                                 </Stack>
 
                                                 <Group gap="xs" wrap="nowrap">
-                                                    <ActionIcon variant="light" radius="xl" onClick={() => openEditHistory(h)} aria-label="Edit">
-                                                        <IconPencil size={16} />
+                                                    <ActionIcon variant="light" radius="xl"
+                                                                onClick={() => openEditHistory(h)} aria-label="Edit">
+                                                        <IconPencil size={16}/>
                                                     </ActionIcon>
 
                                                     <ActionIcon
@@ -725,7 +772,7 @@ export function UserProfile() {
                                                         onClick={() => confirmDeleteHistory(h)}
                                                         aria-label="Delete"
                                                     >
-                                                        <IconTrash size={16} />
+                                                        <IconTrash size={16}/>
                                                     </ActionIcon>
                                                 </Group>
                                             </Group>
@@ -733,7 +780,7 @@ export function UserProfile() {
                                     </Stack>
                                 )}
 
-                                <Divider />
+                                <Divider/>
                             </>
                         ) : null}
 
@@ -797,7 +844,8 @@ export function UserProfile() {
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                             <SortableContext items={mediaTypes.map((x) => x.id)} strategy={verticalListSortingStrategy}>
                                 {mediaTypes.map((item) => (
-                                    <SortableNavLink key={item.id} item={item} activeId={active} onActivate={setActive} />
+                                    <SortableNavLink key={item.id} item={item} activeId={active}
+                                                     onActivate={setActive}/>
                                 ))}
                             </SortableContext>
                         </DndContext>
@@ -814,10 +862,10 @@ export function UserProfile() {
                             onClick={(event) => {
                                 event.preventDefault();
                                 logout();
-                                navigate("/auth/login", { replace: true });
+                                navigate("/auth/login", {replace: true});
                             }}
                         >
-                            <IconLogout className={classes.linkIcon} stroke={1.5} />
+                            <IconLogout className={classes.linkIcon} stroke={1.5}/>
                             <span>{t("logout")}</span>
                         </a>
                     </div>
@@ -829,6 +877,12 @@ export function UserProfile() {
                             store={combobox}
                             withinPortal
                             onOptionSubmit={(value) => {
+                                if (value.startsWith("rawg:")) {
+                                    const externalId = value.slice("rawg:".length);
+                                    void handlePickRawg(externalId);
+                                    return;
+                                }
+
                                 const picked = results.find((x) => String(x.id) === value);
                                 if (!picked) return;
 
@@ -841,15 +895,15 @@ export function UserProfile() {
                                     size="md"
                                     placeholder="Search media"
                                     w="50vw"
-                                    leftSection={<span style={{ width: 18 }} />}
-                                    rightSection={loading ? <Loader size="xs" /> : null}
+                                    leftSection={<span style={{width: 18}}/>}
+                                    rightSection={loading ? <Loader size="xs"/> : null}
                                     value={query}
                                     onChange={(e) => setQuery(e.currentTarget.value)}
                                     onFocus={() => {
-                                        if (results.length > 0) combobox.openDropdown();
+                                        if (results.length > 0 || rawgVisibleResults.length > 0) combobox.openDropdown();
                                     }}
                                     onClick={() => {
-                                        if (results.length > 0) combobox.openDropdown();
+                                        if (results.length > 0 || rawgVisibleResults.length > 0) combobox.openDropdown();
                                     }}
                                 />
                             </Combobox.Target>
@@ -858,7 +912,9 @@ export function UserProfile() {
                                 <Combobox.Options>
                                     {error && <Combobox.Empty>{error}</Combobox.Empty>}
 
-                                    {!error && results.length === 0 && !loading && <Combobox.Empty>Nothing found</Combobox.Empty>}
+                                    {!error && results.length === 0 && rawgVisibleResults.length === 0 && !loading && (
+                                        <Combobox.Empty>Nothing found</Combobox.Empty>
+                                    )}
 
                                     {results.map((m) => (
                                         <Combobox.Option key={m.id} value={String(m.id)}>
@@ -870,16 +926,20 @@ export function UserProfile() {
                                                     gap: 12,
                                                 }}
                                             >
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                                    <div style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                                                        <span style={{ fontWeight: 600 }}>{m.title ?? m.originalTitle ?? "Untitled"}</span>
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>
+                                                <div style={{display: "flex", flexDirection: "column", gap: 2}}>
+                                                    <div style={{display: "flex", gap: 8, alignItems: "baseline"}}>
+                                                        <span
+                                                            style={{fontWeight: 600}}>{m.title ?? m.originalTitle ?? "Untitled"}</span>
+                                                        <span style={{opacity: 0.7, fontSize: 12}}>
                               {m.releaseDate ? ` • ${m.releaseDate.slice(0, 4)}` : ""}
                             </span>
                                                     </div>
 
                                                     {m.originalTitle && m.title && m.originalTitle !== m.title && (
-                                                        <span style={{ opacity: 0.7, fontSize: 12 }}>{m.originalTitle}</span>
+                                                        <span style={{
+                                                            opacity: 0.7,
+                                                            fontSize: 12
+                                                        }}>{m.originalTitle}</span>
                                                     )}
                                                 </div>
 
@@ -899,16 +959,83 @@ export function UserProfile() {
                                             </div>
                                         </Combobox.Option>
                                     ))}
+                                    {rawgVisibleResults.length > 0 && (
+                                        <>
+                                            <Divider my={6}/>
+
+                                            <Text size="xs" c="dimmed" fw={600} px="xs" pb={4}>
+                                                RAWG
+                                            </Text>
+
+                                            {rawgVisibleResults.map((g) => (
+                                                <Combobox.Option key={g.externalId} value={`rawg:${g.externalId}`}>
+                                                    <div
+                                                        style={{
+                                                            display: "flex",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            gap: 12,
+                                                        }}
+                                                    >
+                                                        <div style={{
+                                                            display: "flex",
+                                                            flexDirection: "column",
+                                                            gap: 2,
+                                                            minWidth: 0
+                                                        }}>
+                                                            <div style={{
+                                                                display: "flex",
+                                                                gap: 8,
+                                                                alignItems: "baseline"
+                                                            }}>
+                            <span style={{
+                                fontWeight: 600,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis"
+                            }}>
+                                {g.title}
+                            </span>
+                                                                <span style={{opacity: 0.7, fontSize: 12}}>
+                                {g.released ? ` • ${g.released.slice(0, 4)}` : ""}
+                            </span>
+                                                            </div>
+
+                                                            <span style={{opacity: 0.7, fontSize: 12}}>
+                            {g.alreadyImported ? "Imported" : "Import"}
+                        </span>
+                                                        </div>
+
+                                                        <ActionIcon
+                                                            variant="light"
+                                                            radius="xl"
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                void handlePickRawg(g.externalId);
+                                                            }}
+                                                            aria-label={g.alreadyImported ? "Open" : "Import"}
+                                                        >
+                                                            +
+                                                        </ActionIcon>
+                                                    </div>
+                                                </Combobox.Option>
+                                            ))}
+                                        </>
+                                    )}
                                 </Combobox.Options>
                             </Combobox.Dropdown>
                         </Combobox>
 
-                        <ActionIcon size={40} radius="xl" variant="filled" ml={"xs"} onClick={() => navigate("/create")}>
-                            <IconPlus size={18} stroke={1.5} />
+                        <ActionIcon size={40} radius="xl" variant="filled" ml={"xs"}
+                                    onClick={() => navigate("/create")}>
+                            <IconPlus size={18} stroke={1.5}/>
                         </ActionIcon>
                     </Flex>
 
-                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter} classNames={classes} />
+                    <SegmentedControl data={segmentedData} value={statusFilter} onChange={setStatusFilter}
+                                      classNames={classes}/>
 
                     <MediaUserTable
                         items={filteredTableItems}
@@ -920,10 +1047,10 @@ export function UserProfile() {
                 </Stack>
 
                 {!isMobile && (
-                    <div style={{ position: "absolute", right: 20, bottom: 15 }}>
+                    <div style={{position: "absolute", right: 20, bottom: 15}}>
                         <Group gap="xs">
-                            <LanguageSwitcher />
-                            <ThemeToggle />
+                            <LanguageSwitcher/>
+                            <ThemeToggle/>
                         </Group>
                     </div>
                 )}
