@@ -66,6 +66,8 @@ services:
       CAPTCHA_SECRET_KEY: ${CAPTCHA_SECRET_KEY}
       TEST_BYPASS: ${TEST_BYPASS}
 
+      RAWG_API_KEY: ${RAWG_API_KEY}
+
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx768m"
 
     expose:
