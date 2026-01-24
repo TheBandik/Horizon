@@ -1,4 +1,4 @@
-package thebandik.horizon.backend.user;
+package thebandik.horizon.backend.user.userPreferences;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

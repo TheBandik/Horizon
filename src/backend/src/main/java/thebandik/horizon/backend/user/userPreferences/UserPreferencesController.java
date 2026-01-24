@@ -1,4 +1,4 @@
-package thebandik.horizon.backend.user;
+package thebandik.horizon.backend.user.userPreferences;
 
 import org.springframework.web.bind.annotation.*;
 import thebandik.horizon.backend.common.CurrentUser;

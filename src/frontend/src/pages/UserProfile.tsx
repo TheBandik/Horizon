@@ -42,7 +42,7 @@ import {
 import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors,} from "@dnd-kit/core";
 import {arrayMove, SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import {logout} from "../api/auth/logout.ts";
-import {useNavigate} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router-dom";
 import type {StatusDto} from "../api/statuses.ts";
 
 import type {PartialDateValue} from "./userProfile/types";
@@ -56,6 +56,8 @@ import {useMediaUserTable} from "./userProfile/hooks/useMediaUserTable";
 import {MediaUserTable, type MediaUserTableItem} from "./userProfile/components/MediaUserTable";
 import {getUserPreferences, patchUserPreferences} from "../api/userPreferences";
 import {applyNavOrder, arraysEqual, extractMovableOrder} from "./userProfile/lib/navOrder";
+import {useCurrentUser} from "../hooks/useCurrentUser.ts";
+import {getUserByUsername} from "../api/user.ts";
 
 
 function precisionLabel(p: DatePrecision | null) {
@@ -157,6 +159,32 @@ export function UserProfile() {
             })),
         ];
     }, [availableStatuses]);
+
+    const { username } = useParams<{ username: string }>();
+    const { user: me, loading: meLoading } = useCurrentUser();
+
+    const [, setProfileUser] = useState<{ id: number; username: string } | null>(null);
+    const [profileLoading, setProfileLoading] = useState(true);
+    const [profileNotFound, setProfileNotFound] = useState(false);
+
+    useEffect(() => {
+        if (!username) return;
+
+        const controller = new AbortController();
+        setProfileLoading(true);
+        setProfileNotFound(false);
+
+        getUserByUsername({ username, signal: controller.signal })
+            .then((u) => setProfileUser(u))
+            .catch((e) => {
+                if (e instanceof DOMException && e.name === "AbortError") return;
+                if (e instanceof Error && e.message === "NOT_FOUND") setProfileNotFound(true);
+                setProfileUser(null);
+            })
+            .finally(() => setProfileLoading(false));
+
+        return () => controller.abort();
+    }, [username]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -597,6 +625,13 @@ export function UserProfile() {
         [detailsItem, invalidateActive, refetch, loadDetails]
     );
 
+    if (meLoading) return null;
+    if (!me) return <Navigate to="/auth/login" replace />;
+
+    if (!username) return <Navigate to={`/user/${me.username}`} replace />;
+    if (profileNotFound) return <div>Пользователь не найден</div>;
+    if (profileLoading) return null;
+
     return (
         <>
             <Modal
@@ -903,12 +938,17 @@ export function UserProfile() {
                     </div>
 
                     <div className={classes.footer}>
-                        <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
-                            <span>TheBandik</span>
-                        </a>
+                        <div
+                            role="button"
+                            className={classes.link}
+                            onClick={() => {
+                                if (me?.username) navigate(`/user/${me.username}`);
+                            }}
+                        >
+                            <span>{me?.username ?? "—"}</span>
+                        </div>
 
-                        <a
-                            href="#"
+                        <div
                             className={classes.link}
                             onClick={(event) => {
                                 event.preventDefault();
@@ -918,7 +958,7 @@ export function UserProfile() {
                         >
                             <IconLogout className={classes.linkIcon} stroke={1.5}/>
                             <span>{t("logout")}</span>
-                        </a>
+                        </div>
                     </div>
                 </nav>
 

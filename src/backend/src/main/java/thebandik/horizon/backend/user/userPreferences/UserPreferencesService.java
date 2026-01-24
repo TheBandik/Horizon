@@ -1,4 +1,4 @@
-package thebandik.horizon.backend.user;
+package thebandik.horizon.backend.user.userPreferences;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

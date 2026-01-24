@@ -1,4 +1,4 @@
-package thebandik.horizon.backend.user;
+package thebandik.horizon.backend.user.userPreferences;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
