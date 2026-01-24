@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import thebandik.horizon.backend.catalog.status.Status;
 import thebandik.horizon.backend.media.Media;
 import thebandik.horizon.backend.user.User;
@@ -51,6 +53,11 @@ public class MediaUser {
 
     @Column(name = "last_event_date")
     private LocalDate lastEventDate;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "last_event_precision")
+    private DatePrecision lastEventPrecision;
 
     @Column(name = "history_count", nullable = false)
     private Integer historyCount = 0;

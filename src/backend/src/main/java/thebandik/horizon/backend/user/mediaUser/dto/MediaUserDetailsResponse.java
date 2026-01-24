@@ -1,5 +1,6 @@
 package thebandik.horizon.backend.user.mediaUser.dto;
 
+import thebandik.horizon.backend.user.mediaUser.DatePrecision;
 import thebandik.horizon.backend.user.mediaUser.mediaUserHistory.dto.MediaUserHistoryResponse;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ public record MediaUserDetailsResponse(
         Short rating,
         LocalDate firstEventDate,
         LocalDate lastEventDate,
+        DatePrecision lastEventPrecision,
         Integer historyCount,
         List<MediaUserHistoryResponse> history
 ) {

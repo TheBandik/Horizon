@@ -46,7 +46,7 @@ import {Navigate, useNavigate, useParams} from "react-router-dom";
 import type {StatusDto} from "../api/statuses.ts";
 
 import type {PartialDateValue} from "./userProfile/types";
-import {buildEventDatePayload} from "./userProfile/lib/dates";
+import {buildEventDatePayload, formatByPrecision} from "./userProfile/lib/dates";
 import {normalizeRating} from "./userProfile/lib/rating";
 import {resolveScopeByMediaTypeName} from "./userProfile/lib/mediaType";
 import {SortableNavLink} from "./userProfile/components/SortableNavLink";
@@ -160,8 +160,8 @@ export function UserProfile() {
         ];
     }, [availableStatuses]);
 
-    const { username } = useParams<{ username: string }>();
-    const { user: me, loading: meLoading } = useCurrentUser();
+    const {username} = useParams<{ username: string }>();
+    const {user: me, loading: meLoading} = useCurrentUser();
 
     const [, setProfileUser] = useState<{ id: number; username: string } | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
@@ -174,7 +174,7 @@ export function UserProfile() {
         setProfileLoading(true);
         setProfileNotFound(false);
 
-        getUserByUsername({ username, signal: controller.signal })
+        getUserByUsername({username, signal: controller.signal})
             .then((u) => setProfileUser(u))
             .catch((e) => {
                 if (e instanceof DOMException && e.name === "AbortError") return;
@@ -626,9 +626,9 @@ export function UserProfile() {
     );
 
     if (meLoading) return null;
-    if (!me) return <Navigate to="/auth/login" replace />;
+    if (!me) return <Navigate to="/auth/login" replace/>;
 
-    if (!username) return <Navigate to={`/user/${me.username}`} replace />;
+    if (!username) return <Navigate to={`/user/${me.username}`} replace/>;
     if (profileNotFound) return <div>Пользователь не найден</div>;
     if (profileLoading) return null;
 
@@ -809,7 +809,7 @@ export function UserProfile() {
                                             Last Date
                                         </Text>
                                         <Text size="sm" fw={600}>
-                                            {formatDateISO(details.lastEventDate ?? null)}
+                                            {formatByPrecision(details.lastEventDate, details.lastEventPrecision)}
                                         </Text>
                                     </Group>
                                 </Stack>
@@ -838,7 +838,8 @@ export function UserProfile() {
                                             <Group key={h.id} justify="space-between" wrap="nowrap">
                                                 <Stack gap={2} style={{minWidth: 0}}>
                                                     <Text fw={600} lineClamp={1}>
-                                                        {h.eventDate ? formatDateISO(h.eventDate) : "—"}
+                                                        {formatByPrecision(h.eventDate, h.precision)}
+
                                                     </Text>
                                                     <Text size="xs" c="dimmed">
                                                         {precisionLabel((h.precision as DatePrecision) ?? null)}

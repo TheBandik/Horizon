@@ -2,6 +2,7 @@ package thebandik.horizon.backend.user.mediaUser.dto;
 
 import thebandik.horizon.backend.catalog.status.dto.StatusResponse;
 import thebandik.horizon.backend.media.dto.MediaResponse;
+import thebandik.horizon.backend.user.mediaUser.DatePrecision;
 
 import java.time.LocalDate;
 
@@ -10,6 +11,7 @@ public record MediaUserGetByMediaTypeResponse(
         MediaResponse media,
         StatusResponse status,
         Short rating,
-        LocalDate lastEventDate
-) {
+        LocalDate lastEventDate,
+        DatePrecision lastEventPrecision
+        ) {
 }

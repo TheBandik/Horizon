@@ -1,6 +1,7 @@
-import { ActionIcon, Table } from "@mantine/core";
-import { IconEye, IconPencil, IconTrash } from "@tabler/icons-react";
-import React, { useMemo, useState } from "react";
+import {ActionIcon, Table} from "@mantine/core";
+import {IconEye, IconPencil, IconTrash} from "@tabler/icons-react";
+import React, {useMemo, useState} from "react";
+import type {DatePrecision} from "../../../api/mediaUser.ts";
 
 export type MediaUserTableItem = {
     id: number;
@@ -24,6 +25,7 @@ export type MediaUserTableItem = {
 
     rating: number | null;
     lastEventDate: string | null;
+    lastEventPrecision: DatePrecision | null;
 };
 
 type SortKey = "TITLE" | "YEAR" | "STATUS" | "USER_DATE" | "RATING";
@@ -58,27 +60,27 @@ function compareNullableNumber(a: number | null, b: number | null): number {
     return a - b;
 }
 
-function isoDateKey(iso: string | null | undefined): number {
+function dateKey(iso: string | null | undefined, p: DatePrecision | null | undefined): number {
     if (!iso) return 0;
     const s = iso.trim();
     const y = s.slice(0, 4);
     if (y.length !== 4 || Number.isNaN(Number(y))) return 0;
 
-    const m = s.length >= 7 ? s.slice(5, 7) : "01";
-    const d = s.length >= 10 ? s.slice(8, 10) : "01";
+    const m = p === "YEAR" ? "01" : (s.length >= 7 ? s.slice(5, 7) : "01");
+    const d = p === "DAY" ? (s.length >= 10 ? s.slice(8, 10) : "01") : "01";
 
-    const yy = Number(y);
-    const mm = Number(m);
-    const dd = Number(d);
-
-    if (Number.isNaN(yy) || Number.isNaN(mm) || Number.isNaN(dd)) return 0;
+    const yy = Number(y), mm = Number(m), dd = Number(d);
+    if ([yy, mm, dd].some(Number.isNaN)) return 0;
 
     return yy * 10000 + mm * 100 + dd;
 }
 
-function formatUserDate(iso: string | null | undefined): string {
+function formatByPrecision(iso: string | null | undefined, p: DatePrecision | null | undefined): string {
     if (!iso) return "—";
     const s = iso.trim();
+
+    if (p === "YEAR") return s.slice(0, 4);
+    if (p === "MONTH") return s.length >= 7 ? s.slice(0, 7) : s.slice(0, 4);
     return s.length >= 10 ? s.slice(0, 10) : s;
 }
 
@@ -116,7 +118,8 @@ export function MediaUserTable({
                     );
                     break;
                 case "USER_DATE":
-                    res = isoDateKey(a.lastEventDate) - isoDateKey(b.lastEventDate);
+                    res = dateKey(a.lastEventDate, a.lastEventPrecision) -
+                        dateKey(b.lastEventDate, b.lastEventPrecision);
                     break;
                 case "RATING":
                     res = compareNullableNumber(a.rating, b.rating);
@@ -124,7 +127,7 @@ export function MediaUserTable({
             }
 
             if (res !== 0) return res * dir;
-            return (a.id - b.id) * dir;
+            return a.id - b.id;
         });
 
         return arr;
@@ -154,42 +157,42 @@ export function MediaUserTable({
         <Table.ScrollContainer
             maxHeight={maxHeight}
             minWidth={minWidth}
-            style={{ paddingInline: "var(--mantine-spacing-lg)" }} // ← ВАЖНО
+            style={{paddingInline: "var(--mantine-spacing-lg)"}} // ← ВАЖНО
         >
             <Table
                 striped
                 highlightOnHover
                 withRowBorders={false}
                 horizontalSpacing="lg"
-                style={{ tableLayout: "fixed", width: "100%" }}
+                style={{tableLayout: "fixed", width: "100%"}}
             >
                 <colgroup>
-                    <col style={{ width: "42%" }} />
-                    <col style={{ width: 80 }} />
-                    <col style={{ width: "18%" }} />
-                    <col style={{ width: 120 }} />
-                    <col style={{ width: 90 }} />
-                    {showActions && <col style={{ width: 128 }} />}
+                    <col style={{width: "42%"}}/>
+                    <col style={{width: 80}}/>
+                    <col style={{width: "18%"}}/>
+                    <col style={{width: 120}}/>
+                    <col style={{width: 90}}/>
+                    {showActions && <col style={{width: 128}}/>}
                 </colgroup>
 
                 <Table.Thead>
                     <Table.Tr>
-                        <Table.Th onClick={() => toggleSort("TITLE")} style={{ cursor: "pointer" }}>
+                        <Table.Th onClick={() => toggleSort("TITLE")} style={{cursor: "pointer"}}>
                             Title{sortMark("TITLE")}
                         </Table.Th>
-                        <Table.Th onClick={() => toggleSort("YEAR")} style={{ cursor: "pointer" }}>
+                        <Table.Th onClick={() => toggleSort("YEAR")} style={{cursor: "pointer"}}>
                             Year{sortMark("YEAR")}
                         </Table.Th>
-                        <Table.Th onClick={() => toggleSort("STATUS")} style={{ cursor: "pointer" }}>
+                        <Table.Th onClick={() => toggleSort("STATUS")} style={{cursor: "pointer"}}>
                             Status{sortMark("STATUS")}
                         </Table.Th>
-                        <Table.Th onClick={() => toggleSort("USER_DATE")} style={{ cursor: "pointer" }}>
+                        <Table.Th onClick={() => toggleSort("USER_DATE")} style={{cursor: "pointer"}}>
                             User Date{sortMark("USER_DATE")}
                         </Table.Th>
-                        <Table.Th onClick={() => toggleSort("RATING")} style={{ cursor: "pointer" }}>
+                        <Table.Th onClick={() => toggleSort("RATING")} style={{cursor: "pointer"}}>
                             Rating{sortMark("RATING")}
                         </Table.Th>
-                        {showActions && <Table.Th />}
+                        {showActions && <Table.Th/>}
                     </Table.Tr>
                 </Table.Thead>
 
@@ -200,7 +203,7 @@ export function MediaUserTable({
                         return (
                             <Table.Tr
                                 key={x.id}
-                                style={onRowClick ? { cursor: "pointer" } : undefined}
+                                style={onRowClick ? {cursor: "pointer"} : undefined}
                                 onClick={() => onRowClick?.(x)}
                             >
                                 <Table.Td style={tdEllipsis} title={title}>{title}</Table.Td>
@@ -211,12 +214,12 @@ export function MediaUserTable({
                                     {x.status.name}
                                 </Table.Td>
                                 <Table.Td style={tdEllipsis}>
-                                    {formatUserDate(x.lastEventDate)}
+                                    {formatByPrecision(x.lastEventDate, x.lastEventPrecision)}
                                 </Table.Td>
                                 <Table.Td style={tdEllipsis}>{x.rating ?? "—"}</Table.Td>
 
                                 {showActions && (
-                                    <Table.Td style={{ textAlign: "right" }}>
+                                    <Table.Td style={{textAlign: "right"}}>
                                         {onDetailsClick && (
                                             <ActionIcon
                                                 variant="subtle"
@@ -227,7 +230,7 @@ export function MediaUserTable({
                                                     onDetailsClick(x);
                                                 }}
                                             >
-                                                <IconEye size={18} stroke={1.5} />
+                                                <IconEye size={18} stroke={1.5}/>
                                             </ActionIcon>
                                         )}
 
@@ -241,7 +244,7 @@ export function MediaUserTable({
                                                     onEditClick(x);
                                                 }}
                                             >
-                                                <IconPencil size={18} stroke={1.5} />
+                                                <IconPencil size={18} stroke={1.5}/>
                                             </ActionIcon>
                                         )}
 
@@ -255,7 +258,7 @@ export function MediaUserTable({
                                                     onDeleteClick(x);
                                                 }}
                                             >
-                                                <IconTrash size={18} stroke={1.5} />
+                                                <IconTrash size={18} stroke={1.5}/>
                                             </ActionIcon>
                                         )}
                                     </Table.Td>

@@ -45,6 +45,7 @@ export type MediaUserItem = {
     };
     rating: number | null;
     lastEventDate: string | null;
+    lastEventPrecision: DatePrecision | null;
 };
 
 export type MediaUserHistoryItem = {
@@ -61,6 +62,7 @@ export type MediaUserDetailsResponse = {
     rating: number | null;
     firstEventDate: string | null;
     lastEventDate: string | null;
+    lastEventPrecision: DatePrecision | null;
     historyCount: number;
     history: MediaUserHistoryItem[];
 };

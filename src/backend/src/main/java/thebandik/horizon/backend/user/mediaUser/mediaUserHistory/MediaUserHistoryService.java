@@ -35,9 +35,15 @@ public class MediaUserHistoryService {
         LocalDate min = mediaUserHistoryRepository.minEventDate(mediaUserId);
         LocalDate max = mediaUserHistoryRepository.maxEventDate(mediaUserId);
 
+        DatePrecision lastPrecision = mediaUserHistoryRepository
+                .findFirstByMediaUserIdOrderByEventDateDescIdDesc(mediaUserId)
+                .map(MediaUserHistory::getPrecision)
+                .orElse(DatePrecision.DAY);
+
         mu.setHistoryCount((int) count);
         mu.setFirstEventDate(min);
         mu.setLastEventDate(max);
+        mu.setLastEventPrecision(lastPrecision);
     }
 
     @Transactional

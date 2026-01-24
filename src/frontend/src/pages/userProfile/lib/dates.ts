@@ -1,7 +1,20 @@
 import type { EventDatePayload, PartialDateValue } from "../types";
+import type {DatePrecision} from "../../../api/mediaUser.ts";
 
 export function pad2(v: string) {
     return v.padStart(2, "0").slice(0, 2);
+}
+
+export function formatByPrecision(
+    iso: string | null | undefined,
+    p: DatePrecision | null | undefined
+): string {
+    if (!iso) return "—";
+    const s = iso.trim();
+
+    if (p === "YEAR") return s.slice(0, 4);
+    if (p === "MONTH") return s.length >= 7 ? s.slice(0, 7) : s.slice(0, 4);
+    return s.length >= 10 ? s.slice(0, 10) : s;
 }
 
 export function buildEventDatePayload(date: PartialDateValue): EventDatePayload {
