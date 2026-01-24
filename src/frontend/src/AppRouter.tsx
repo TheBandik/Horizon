@@ -8,6 +8,15 @@ import {UserProfile} from './pages/UserProfile';
 import {CreateMedia} from './pages/CreateMedia';
 import {RequireAuth} from './components/RequireAuth';
 import {registerUnauthorizedHandler} from './api/http';
+import {useCurrentUser} from "./hooks/useCurrentUser.ts";
+
+function UserRedirect() {
+    const {user, loading} = useCurrentUser();
+    if (loading) return null;
+    if (!user) return <Navigate to="/auth/login" replace/>;
+
+    return <Navigate to={`/user/${user.username}`} replace/>;
+}
 
 export function AppRouter() {
     const navigate = useNavigate();
@@ -45,7 +54,13 @@ export function AppRouter() {
                 <Route
                     path="/user"
                     element={
-                        <UserProfile/>
+                        <UserRedirect />
+                    }
+                />
+                <Route
+                    path="/user/:username"
+                    element={
+                        <UserProfile />
                     }
                 />
                 <Route
@@ -58,7 +73,7 @@ export function AppRouter() {
 
             {/* Фоллбек */}
             <Route path="*" element={<Navigate to="/" replace/>}/>
-            <Route path="/" element={<Navigate to="/user" replace />} />
+            <Route path="/" element={<Navigate to="/user" replace/>}/>
         </Routes>
     );
 }

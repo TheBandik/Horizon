@@ -5,7 +5,7 @@ import classes from './styles/ThemeToggle.module.css';
 
 export function ThemeToggle() {
     const { setColorScheme } = useMantineColorScheme();
-    const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
+    const computedColorScheme = useComputedColorScheme('light');
 
     return (
         <ActionIcon

@@ -22,7 +22,7 @@ import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
 import {ThemeToggle} from "../components/ThemeToggle.tsx";
 import {useDebouncedValue, useDisclosure, useMediaQuery} from "@mantine/hooks";
 import {useTranslation} from "react-i18next";
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {type ExternalGameSearchItem, importRawgGame, type MediaResponse, searchMixedMedia,} from "../api/media.ts";
 import {MediaEditModal} from "../components/MediaEditModal";
 import {
@@ -42,11 +42,11 @@ import {
 import {closestCenter, DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors,} from "@dnd-kit/core";
 import {arrayMove, SortableContext, verticalListSortingStrategy} from "@dnd-kit/sortable";
 import {logout} from "../api/auth/logout.ts";
-import {useNavigate} from "react-router-dom";
+import {Navigate, useNavigate, useParams} from "react-router-dom";
 import type {StatusDto} from "../api/statuses.ts";
 
 import type {PartialDateValue} from "./userProfile/types";
-import {buildEventDatePayload} from "./userProfile/lib/dates";
+import {buildEventDatePayload, formatByPrecision} from "./userProfile/lib/dates";
 import {normalizeRating} from "./userProfile/lib/rating";
 import {resolveScopeByMediaTypeName} from "./userProfile/lib/mediaType";
 import {SortableNavLink} from "./userProfile/components/SortableNavLink";
@@ -54,6 +54,10 @@ import {useStatuses} from "./userProfile/hooks/useStatuses";
 import {useMediaTypesNav} from "./userProfile/hooks/useMediaTypesNav";
 import {useMediaUserTable} from "./userProfile/hooks/useMediaUserTable";
 import {MediaUserTable, type MediaUserTableItem} from "./userProfile/components/MediaUserTable";
+import {getUserPreferences, patchUserPreferences} from "../api/userPreferences";
+import {applyNavOrder, arraysEqual, extractMovableOrder} from "./userProfile/lib/navOrder";
+import {useCurrentUser} from "../hooks/useCurrentUser.ts";
+import {getUserByUsername} from "../api/user.ts";
 
 
 function precisionLabel(p: DatePrecision | null) {
@@ -93,6 +97,10 @@ export function UserProfile() {
     const [rawgResults, setRawgResults] = useState<ExternalGameSearchItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const [prefsLoaded, setPrefsLoaded] = useState(false);
+    const savedOrderRef = useRef<string[] | null>(null);
+    const lastSavedOrderRef = useRef<string[] | null>(null);
 
     const [editMediaId, setEditMediaId] = useState<number | null>(null);
 
@@ -152,6 +160,73 @@ export function UserProfile() {
         ];
     }, [availableStatuses]);
 
+    const {username} = useParams<{ username: string }>();
+    const {user: me, loading: meLoading} = useCurrentUser();
+
+    const [, setProfileUser] = useState<{ id: number; username: string } | null>(null);
+    const [profileLoading, setProfileLoading] = useState(true);
+    const [profileNotFound, setProfileNotFound] = useState(false);
+
+    useEffect(() => {
+        if (!username) return;
+
+        const controller = new AbortController();
+        setProfileLoading(true);
+        setProfileNotFound(false);
+
+        getUserByUsername({username, signal: controller.signal})
+            .then((u) => setProfileUser(u))
+            .catch((e) => {
+                if (e instanceof DOMException && e.name === "AbortError") return;
+                if (e instanceof Error && e.message === "NOT_FOUND") setProfileNotFound(true);
+                setProfileUser(null);
+            })
+            .finally(() => setProfileLoading(false));
+
+        return () => controller.abort();
+    }, [username]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        (async () => {
+            try {
+                const prefs = await getUserPreferences({signal: controller.signal});
+                const order = prefs?.nav?.mediaTypesOrder;
+
+                savedOrderRef.current = order ?? null;
+
+                if (order && order.length > 0) {
+                    setMediaTypes((items) => applyNavOrder(items, order));
+                }
+
+                lastSavedOrderRef.current = order ?? null;
+            } catch (e) {
+                if (e instanceof DOMException && e.name === "AbortError") return;
+                console.warn("Failed to load preferences", e);
+            } finally {
+                setPrefsLoaded(true);
+            }
+        })();
+
+        return () => controller.abort();
+    }, [setMediaTypes]);
+
+    useEffect(() => {
+        if (!prefsLoaded) return;
+
+        const order = savedOrderRef.current;
+        if (!order || order.length === 0) return;
+        if (mediaTypes.length === 0) return;
+
+        const current = extractMovableOrder(mediaTypes);
+        const desired = order.filter((id) => current.includes(id));
+
+        if (arraysEqual(current, desired)) return;
+
+        setMediaTypes((items) => applyNavOrder(items, order));
+    }, [prefsLoaded, mediaTypes, setMediaTypes]);
+
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {distance: 6},
@@ -161,26 +236,34 @@ export function UserProfile() {
     const onDragEnd = (event: DragEndEvent) => {
         const {active: a, over} = event;
         if (!over) return;
-        if (a.id === over.id) return;
+
+        const activeId = String(a.id);
+        const overId = String(over.id);
+        if (activeId === overId) return;
 
         setMediaTypes((items) => {
-            const oldIndex = items.findIndex((i) => i.id === a.id);
-            const overIndex = items.findIndex((i) => i.id === over.id);
+            const oldIndex = items.findIndex((i) => i.id === activeId);
+            const overIndex = items.findIndex((i) => i.id === overId);
             if (oldIndex === -1 || overIndex === -1) return items;
 
             const firstDisabledIndex = items.findIndex((i) => i.disabled);
             const boundary = firstDisabledIndex === -1 ? items.length : firstDisabledIndex;
 
-            if (boundary <= 0) return items;
-
             const overIsDisabled = items[overIndex]?.disabled;
             let newIndex = overIsDisabled ? boundary - 1 : overIndex;
-
             newIndex = Math.min(newIndex, boundary - 1);
-
             if (newIndex === oldIndex) return items;
 
-            return arrayMove(items, oldIndex, newIndex);
+            const next = arrayMove(items, oldIndex, newIndex);
+            const order = extractMovableOrder(next);
+
+            savedOrderRef.current = order;
+            lastSavedOrderRef.current = order;
+
+            void patchUserPreferences({patch: {nav: {mediaTypesOrder: order}}})
+                .catch((e) => console.warn("Failed to save preferences", e));
+
+            return next;
         });
     };
 
@@ -188,8 +271,7 @@ export function UserProfile() {
         return rawgResults.filter((x) => !x.alreadyImported);
     }, [rawgResults]);
 
-    // CREATE from search
-    const openItemModal = (item: MediaResponse) => {
+    const openItemModal = useCallback((item: MediaResponse) => {
         combobox.closeDropdown();
 
         setEditMediaId(null);
@@ -200,7 +282,7 @@ export function UserProfile() {
         setStatusId(null);
 
         openModal();
-    };
+    }, [combobox, openModal]);
 
     const handlePickRawg = useCallback(
         async (externalId: string) => {
@@ -260,7 +342,6 @@ export function UserProfile() {
         [openDetails, loadDetails]
     );
 
-    // EDIT existing card from table
     const openEditFromTable = useCallback(
         (x: MediaUserTableItem) => {
             setEditMediaId(x.media.id);
@@ -334,13 +415,11 @@ export function UserProfile() {
 
         try {
             if (editMediaId != null) {
-                // EDIT: only status + rating
                 await updateMediaUser({
                     mediaId: editMediaId,
                     body: {statusId: Number(statusId), rating: normalizeRating(rating)},
                 });
             } else {
-                // CREATE: can send optional date
                 const {eventDate, precision} = buildEventDatePayload(createPartialDate);
 
                 const body: MediaUserCreateRequest = {
@@ -546,6 +625,13 @@ export function UserProfile() {
         [detailsItem, invalidateActive, refetch, loadDetails]
     );
 
+    if (meLoading) return null;
+    if (!me) return <Navigate to="/auth/login" replace/>;
+
+    if (!username) return <Navigate to={`/user/${me.username}`} replace/>;
+    if (profileNotFound) return <div>Пользователь не найден</div>;
+    if (profileLoading) return null;
+
     return (
         <>
             <Modal
@@ -572,7 +658,7 @@ export function UserProfile() {
                                                     ...s,
                                                     value: {
                                                         ...s.value,
-                                                        year: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 4)
+                                                        year: e.currentTarget.value.replace(/\D/g, "").slice(0, 4)
                                                     }
                                                 }
                                                 : s
@@ -589,7 +675,7 @@ export function UserProfile() {
                                                     ...s,
                                                     value: {
                                                         ...s.value,
-                                                        month: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2)
+                                                        month: e.currentTarget.value.replace(/\D/g, "").slice(0, 2)
                                                     }
                                                 }
                                                 : s
@@ -606,7 +692,7 @@ export function UserProfile() {
                                                     ...s,
                                                     value: {
                                                         ...s.value,
-                                                        day: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2)
+                                                        day: e.currentTarget.value.replace(/\D/g, "").slice(0, 2)
                                                     }
                                                 }
                                                 : s
@@ -723,7 +809,7 @@ export function UserProfile() {
                                             Last Date
                                         </Text>
                                         <Text size="sm" fw={600}>
-                                            {formatDateISO(details.lastEventDate ?? null)}
+                                            {formatByPrecision(details.lastEventDate, details.lastEventPrecision)}
                                         </Text>
                                     </Group>
                                 </Stack>
@@ -752,7 +838,8 @@ export function UserProfile() {
                                             <Group key={h.id} justify="space-between" wrap="nowrap">
                                                 <Stack gap={2} style={{minWidth: 0}}>
                                                     <Text fw={600} lineClamp={1}>
-                                                        {h.eventDate ? formatDateISO(h.eventDate) : "—"}
+                                                        {formatByPrecision(h.eventDate, h.precision)}
+
                                                     </Text>
                                                     <Text size="xs" c="dimmed">
                                                         {precisionLabel((h.precision as DatePrecision) ?? null)}
@@ -852,12 +939,17 @@ export function UserProfile() {
                     </div>
 
                     <div className={classes.footer}>
-                        <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
-                            <span>TheBandik</span>
-                        </a>
+                        <div
+                            role="button"
+                            className={classes.link}
+                            onClick={() => {
+                                if (me?.username) navigate(`/user/${me.username}`);
+                            }}
+                        >
+                            <span>{me?.username ?? "—"}</span>
+                        </div>
 
-                        <a
-                            href="#"
+                        <div
                             className={classes.link}
                             onClick={(event) => {
                                 event.preventDefault();
@@ -867,7 +959,7 @@ export function UserProfile() {
                         >
                             <IconLogout className={classes.linkIcon} stroke={1.5}/>
                             <span>{t("logout")}</span>
-                        </a>
+                        </div>
                     </div>
                 </nav>
 

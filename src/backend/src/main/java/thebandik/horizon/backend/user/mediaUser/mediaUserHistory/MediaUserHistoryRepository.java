@@ -21,6 +21,8 @@ public interface MediaUserHistoryRepository extends JpaRepository<MediaUserHisto
     @Query("select max(h.eventDate) from MediaUserHistory h where h.mediaUser.id = :mediaUserId and h.eventDate is not null")
     LocalDate maxEventDate(@Param("mediaUserId") Long mediaUserId);
 
+    Optional<MediaUserHistory> findFirstByMediaUserIdOrderByEventDateDescIdDesc(Long mediaUserId);
+
     Optional<MediaUserHistory> findByIdAndMediaUserId(Long id, Long mediaUserId);
 
     @Modifying

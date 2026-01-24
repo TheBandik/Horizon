@@ -41,7 +41,8 @@ public class MediaUserMapper {
                         status.getScope()
                 ),
                 mediaUser.getRating(),
-                mediaUser.getLastEventDate()
+                mediaUser.getLastEventDate(),
+                mediaUser.getLastEventPrecision()
         );
     }
 
@@ -67,6 +68,7 @@ public class MediaUserMapper {
                 mediaUser.getRating(),
                 mediaUser.getFirstEventDate(),
                 mediaUser.getLastEventDate(),
+                mediaUser.getLastEventPrecision(),
                 mediaUser.getHistoryCount(),
                 history
         );

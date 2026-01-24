@@ -6,6 +6,7 @@ import {useNavigate} from 'react-router-dom';
 import {SmartCaptcha} from '@yandex/smart-captcha';
 import {useCallback, useState} from 'react';
 import {setToken} from '../../api/auth/token.ts';
+import i18n from "i18next";
 
 export function LoginForm() {
     const {t} = useTranslation();
@@ -92,7 +93,7 @@ export function LoginForm() {
                 <SmartCaptcha
                     key={captchaKey}
                     sitekey={import.meta.env.VITE_YANDEX_SMARTCAPTCHA_SITEKEY}
-                    language="ru"
+                    language={i18n.resolvedLanguage as "ru" | "en"}
                     onSuccess={handleCaptchaSuccess}
                     onTokenExpired={handleCaptchaExpired}
                 />

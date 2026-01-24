@@ -34,7 +34,6 @@ export function SortableNavLink({
             className={classes.link}
             data-active={(!item.disabled && item.id === activeId) || undefined}
             data-disabled={item.disabled || undefined}
-            href={item.link || "#"}
             onClick={(e) => {
                 e.preventDefault();
                 if (item.disabled) return;

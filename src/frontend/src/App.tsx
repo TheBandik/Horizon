@@ -1,4 +1,4 @@
-import {createTheme, MantineProvider} from '@mantine/core';
+import {createTheme, localStorageColorSchemeManager, MantineProvider} from '@mantine/core';
 import {BrowserRouter} from 'react-router-dom';
 import {ModalsProvider} from "@mantine/modals";
 
@@ -7,6 +7,10 @@ import '@mantine/dates/styles.css';
 import '@mantine/dropzone/styles.css';
 
 import {AppRouter} from "./AppRouter.tsx";
+
+const colorSchemeManager = localStorageColorSchemeManager({
+    key: 'mantine-color-scheme',
+});
 
 export default function App() {
 
@@ -52,12 +56,14 @@ export default function App() {
     });
 
     return (
-        <MantineProvider theme={theme}>
-            <ModalsProvider>
-                <BrowserRouter>
-                    <AppRouter/>
-                </BrowserRouter>
-            </ModalsProvider>
-        </MantineProvider>
+        <>
+            <MantineProvider theme={theme} defaultColorScheme="auto" colorSchemeManager={colorSchemeManager}>
+                <ModalsProvider>
+                    <BrowserRouter>
+                        <AppRouter/>
+                    </BrowserRouter>
+                </ModalsProvider>
+            </MantineProvider>
+        </>
     );
 }

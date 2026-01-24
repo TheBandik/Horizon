@@ -19,9 +19,9 @@ function mapToTableItem(x: MediaUserItem): MediaUserTableItem {
         },
         rating: x.rating ?? null,
         lastEventDate: x.lastEventDate ?? null,
+        lastEventPrecision: x.lastEventPrecision ?? null,
     };
 }
-
 
 export function useMediaUserTable(active: string) {
     const [itemsByType, setItemsByType] = useState<Record<number, MediaUserItem[]>>({});
