@@ -22,7 +22,7 @@ import {LanguageSwitcher} from "../components/LanguageSwitcher.tsx";
 import {ThemeToggle} from "../components/ThemeToggle.tsx";
 import {useDebouncedValue, useDisclosure, useMediaQuery} from "@mantine/hooks";
 import {useTranslation} from "react-i18next";
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {type ExternalGameSearchItem, importRawgGame, type MediaResponse, searchMixedMedia,} from "../api/media.ts";
 import {MediaEditModal} from "../components/MediaEditModal";
 import {
@@ -54,6 +54,8 @@ import {useStatuses} from "./userProfile/hooks/useStatuses";
 import {useMediaTypesNav} from "./userProfile/hooks/useMediaTypesNav";
 import {useMediaUserTable} from "./userProfile/hooks/useMediaUserTable";
 import {MediaUserTable, type MediaUserTableItem} from "./userProfile/components/MediaUserTable";
+import {getUserPreferences, patchUserPreferences} from "../api/userPreferences";
+import {applyNavOrder, arraysEqual, extractMovableOrder} from "./userProfile/lib/navOrder";
 
 
 function precisionLabel(p: DatePrecision | null) {
@@ -93,6 +95,10 @@ export function UserProfile() {
     const [rawgResults, setRawgResults] = useState<ExternalGameSearchItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const [prefsLoaded, setPrefsLoaded] = useState(false);
+    const savedOrderRef = useRef<string[] | null>(null);
+    const lastSavedOrderRef = useRef<string[] | null>(null);
 
     const [editMediaId, setEditMediaId] = useState<number | null>(null);
 
@@ -152,6 +158,47 @@ export function UserProfile() {
         ];
     }, [availableStatuses]);
 
+    useEffect(() => {
+        const controller = new AbortController();
+
+        (async () => {
+            try {
+                const prefs = await getUserPreferences({signal: controller.signal});
+                const order = prefs?.nav?.mediaTypesOrder;
+
+                savedOrderRef.current = order ?? null;
+
+                if (order && order.length > 0) {
+                    setMediaTypes((items) => applyNavOrder(items, order));
+                }
+
+                lastSavedOrderRef.current = order ?? null;
+            } catch (e) {
+                if (e instanceof DOMException && e.name === "AbortError") return;
+                console.warn("Failed to load preferences", e);
+            } finally {
+                setPrefsLoaded(true);
+            }
+        })();
+
+        return () => controller.abort();
+    }, [setMediaTypes]);
+
+    useEffect(() => {
+        if (!prefsLoaded) return;
+
+        const order = savedOrderRef.current;
+        if (!order || order.length === 0) return;
+        if (mediaTypes.length === 0) return;
+
+        const current = extractMovableOrder(mediaTypes);
+        const desired = order.filter((id) => current.includes(id));
+
+        if (arraysEqual(current, desired)) return;
+
+        setMediaTypes((items) => applyNavOrder(items, order));
+    }, [prefsLoaded, mediaTypes, setMediaTypes]);
+
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {distance: 6},
@@ -161,26 +208,34 @@ export function UserProfile() {
     const onDragEnd = (event: DragEndEvent) => {
         const {active: a, over} = event;
         if (!over) return;
-        if (a.id === over.id) return;
+
+        const activeId = String(a.id);
+        const overId = String(over.id);
+        if (activeId === overId) return;
 
         setMediaTypes((items) => {
-            const oldIndex = items.findIndex((i) => i.id === a.id);
-            const overIndex = items.findIndex((i) => i.id === over.id);
+            const oldIndex = items.findIndex((i) => i.id === activeId);
+            const overIndex = items.findIndex((i) => i.id === overId);
             if (oldIndex === -1 || overIndex === -1) return items;
 
             const firstDisabledIndex = items.findIndex((i) => i.disabled);
             const boundary = firstDisabledIndex === -1 ? items.length : firstDisabledIndex;
 
-            if (boundary <= 0) return items;
-
             const overIsDisabled = items[overIndex]?.disabled;
             let newIndex = overIsDisabled ? boundary - 1 : overIndex;
-
             newIndex = Math.min(newIndex, boundary - 1);
-
             if (newIndex === oldIndex) return items;
 
-            return arrayMove(items, oldIndex, newIndex);
+            const next = arrayMove(items, oldIndex, newIndex);
+            const order = extractMovableOrder(next);
+
+            savedOrderRef.current = order;
+            lastSavedOrderRef.current = order;
+
+            void patchUserPreferences({patch: {nav: {mediaTypesOrder: order}}})
+                .catch((e) => console.warn("Failed to save preferences", e));
+
+            return next;
         });
     };
 
@@ -188,8 +243,7 @@ export function UserProfile() {
         return rawgResults.filter((x) => !x.alreadyImported);
     }, [rawgResults]);
 
-    // CREATE from search
-    const openItemModal = (item: MediaResponse) => {
+    const openItemModal = useCallback((item: MediaResponse) => {
         combobox.closeDropdown();
 
         setEditMediaId(null);
@@ -200,7 +254,7 @@ export function UserProfile() {
         setStatusId(null);
 
         openModal();
-    };
+    }, [combobox, openModal]);
 
     const handlePickRawg = useCallback(
         async (externalId: string) => {
@@ -260,7 +314,6 @@ export function UserProfile() {
         [openDetails, loadDetails]
     );
 
-    // EDIT existing card from table
     const openEditFromTable = useCallback(
         (x: MediaUserTableItem) => {
             setEditMediaId(x.media.id);
@@ -334,13 +387,11 @@ export function UserProfile() {
 
         try {
             if (editMediaId != null) {
-                // EDIT: only status + rating
                 await updateMediaUser({
                     mediaId: editMediaId,
                     body: {statusId: Number(statusId), rating: normalizeRating(rating)},
                 });
             } else {
-                // CREATE: can send optional date
                 const {eventDate, precision} = buildEventDatePayload(createPartialDate);
 
                 const body: MediaUserCreateRequest = {
@@ -572,7 +623,7 @@ export function UserProfile() {
                                                     ...s,
                                                     value: {
                                                         ...s.value,
-                                                        year: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 4)
+                                                        year: e.currentTarget.value.replace(/\D/g, "").slice(0, 4)
                                                     }
                                                 }
                                                 : s
@@ -589,7 +640,7 @@ export function UserProfile() {
                                                     ...s,
                                                     value: {
                                                         ...s.value,
-                                                        month: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2)
+                                                        month: e.currentTarget.value.replace(/\D/g, "").slice(0, 2)
                                                     }
                                                 }
                                                 : s
@@ -606,7 +657,7 @@ export function UserProfile() {
                                                     ...s,
                                                     value: {
                                                         ...s.value,
-                                                        day: e.currentTarget.value.replace(/[^\d]/g, "").slice(0, 2)
+                                                        day: e.currentTarget.value.replace(/\D/g, "").slice(0, 2)
                                                     }
                                                 }
                                                 : s
